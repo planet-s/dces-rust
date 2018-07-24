@@ -1,0 +1,6 @@
+[package]
+name = "dces"
+version = "0.1.0"
+authors = ["Florian Blasius <florian.blasius@ergosign.de>"]
+
+[dependencies]
