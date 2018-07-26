@@ -7,6 +7,7 @@ mod tests;
 pub mod prelude;
 
 pub type Entity = u32;
+pub type Priority = i32;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum NotFound {
@@ -24,6 +25,18 @@ pub trait System: Any {
 
 pub struct EntitySystem {
     system: Box<System>,
+    filter: Option<Box<Fn(Vec<&Component>) -> bool>>,
+    priority: Priority,
+}
+
+impl EntitySystem {
+    pub fn new(system: Box<System>) -> Self {
+        EntitySystem {
+            system,
+            filter: None,
+            priority: 0,
+        }
+    }
 }
 
 pub struct EntityBuilder<'a> {
@@ -45,26 +58,33 @@ impl<'a> EntityBuilder<'a> {
 }
 
 pub struct EntitySystemBuilder<'a> {
+    pub entity_system_id: u32,
+
     pub entity_system_manager: &'a mut EntitySystemManager,
 }
 
-impl<'a> EntitySystemBuilder<'a>{
-    pub fn with_filter(self) -> Self {
+impl<'a> EntitySystemBuilder<'a> {
+    pub fn with_filter<F>(self, filter: F) -> Self
+    where
+        F: Fn(Vec<&Component>) -> bool + 'static,
+    {
+        self.entity_system_manager
+            .register_filter(filter, self.entity_system_id);
+        self
+    }
+ 
+    pub fn with_priority(self, priority: Priority) -> Self {
+        self.entity_system_manager
+            .register_priority(priority, self.entity_system_id);
         self
     }
 
-    pub fn with_priority(self) -> Self {
-        self
-    }
-
-    pub fn build(self) {
-
-    }
+    pub fn build(self) {}
 }
 
 #[derive(Default)]
 pub struct EntitySystemManager {
-
+    entity_systems: HashMap<u32, Box<EntitySystem>>,
 }
 
 impl EntitySystemManager {
@@ -72,7 +92,21 @@ impl EntitySystemManager {
         Default::default()
     }
 
+    pub fn register_system<S: System>(&mut self, system: S, system_id: u32) {
+        self.entity_systems
+            .insert(system_id, Box::new(EntitySystem::new(Box::new(system))));
+    }
 
+    pub fn register_filter<F>(&mut self, filter: F, system_id: u32)
+    where
+        F: Fn(Vec<&Component>) -> bool + 'static,
+    {
+        self.entity_systems.get_mut(&system_id).unwrap().filter = Some(Box::new(filter));
+    }
+
+    pub fn register_priority(&mut self, priority: Priority, system_id: u32) {
+        self.entity_systems.get_mut(&system_id).unwrap().priority = priority;
+    }
 }
 
 #[derive(Default)]
@@ -98,6 +132,9 @@ impl EntityComponentManager {
             .get_mut(entity)
             .get_or_insert(&mut HashMap::new())
             .insert(TypeId::of::<C>(), Box::new(component));
+
+        // todo use this as system filter
+        //        let blub : Vec<u32> = self.entities.iter().filter(|&(k, v)| *k == 1 ).map(|(k, v)| *k).collect();
     }
 
     pub fn borrow_component<C: Component>(&self, entity: Entity) -> Result<&C, NotFound> {
@@ -139,6 +176,7 @@ pub struct World {
     entity_component_manager: EntityComponentManager,
     entity_system_manager: EntitySystemManager,
     entity_counter: u32,
+    entity_sytem_counter: u32,
 }
 
 impl World {
@@ -163,8 +201,13 @@ impl World {
     }
 
     pub fn create_entity_system<S: System>(&mut self, system: S) -> EntitySystemBuilder {
+        let entity_system_id = self.entity_sytem_counter;
+        self.entity_system_manager
+            .register_system(system, entity_system_id);
+        self.entity_sytem_counter += 1;
         EntitySystemBuilder {
             entity_system_manager: &mut self.entity_system_manager,
+            entity_system_id,
         }
     }
 }
