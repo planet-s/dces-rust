@@ -1,6 +1,8 @@
 [package]
 name = "dces"
 version = "0.1.0"
-authors = ["Florian Blasius <florian.blasius@ergosign.de>"]
-
-[dependencies]
+authors = ["Florian Blasius <flovanpt@posteo.de>"]
+description = "DCES entity component system"
+license = "MIT"
+repository = "https://gitlab.com/orbtk/dces-rust"
+keywords = [ "ecs"]
