@@ -30,7 +30,7 @@ fn main() {
         .with(Size {})
         .with(Background)
         .with(Selector)
-        .with(Depth { value: 0 })
+        .with(Depth { value: 4 })
         .build();
 
     world
@@ -60,7 +60,7 @@ fn main() {
         .create_entity()
         .with(Size {})
         .with(Selector {})
-        .with(Depth { value: 4 })
+        .with(Depth { value: 0 })
         .build();
 
     world
@@ -75,18 +75,22 @@ fn main() {
             false
         })
         .with_sort(|ac, bc| {
-            let mut a_detph = 0;
-            let mut b_depth = 0;
+            let a_detph;
+            let b_depth;
 
             if let Some(depth) = ac.downcast_ref::<Depth>() {
                 a_detph = depth.value;
+            } else {
+                return None
             }
 
             if let Some(depth) = bc.downcast_ref::<Depth>() {
                 b_depth = depth.value;
+            } else {
+                return None
             }
 
-            a_detph.cmp(&b_depth)
+            Some(a_detph.cmp(&b_depth))
         })
         .build();
 }

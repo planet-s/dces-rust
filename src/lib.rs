@@ -31,7 +31,7 @@ pub struct EntitySystem {
     filter: Option<Arc<Fn(Vec<&Box<Any>>) -> bool>>,
     priority: Priority,
     entities: Vec<Entity>,
-    sort: Option<Arc<Fn(&Box<Any>, &Box<Any>) -> Ordering>>,
+    sort: Option<Arc<Fn(&Box<Any>, &Box<Any>) -> Option<Ordering>>>,
 }
 
 impl EntitySystem {
@@ -48,6 +48,7 @@ impl EntitySystem {
     pub fn apply_filter_and_sort(&mut self, entities: &HashMap<Entity, HashMap<TypeId, Box<Any>>>) {
         self.entities.clear();
 
+        // filter entities by systems filter closure
         if let Some(ref f) = self.filter {
             let filter = f.clone();
             let entity_iterator = entities.iter();
@@ -60,21 +61,22 @@ impl EntitySystem {
             self.entities.extend(filtered_entities);
         }
 
-    // todo: also sort
+        // sort entities by systems filter closure        
         if let Some(ref s) = self.sort {
             let sort = s.clone();
-            let entity_iterator = entities.iter();
-
-            // let filtered_entities : HashMap<Entity, HashMap<TypeId, Box<Any>>> = entity_iterator.filter(|&(k, _)| {
-            //     self.entities.contains(k)
-            // }).collect();
             
-            // self.entities.sort_by(|a, b| {
+            self.entities.sort_by(|a, b| {
+                for (_, comp_a) in entities.get(a).unwrap() {
+                    for (_, comp_b) in entities.get(b).unwrap() {
+                        if let Some(ord) = sort(&comp_a, &comp_b) {
+                            return ord
+                        }
+                    }
+                }
 
-            // })
-        }
-
-        
+                Ordering::Equal
+            });
+        }   
     }
 
     pub fn remove_entity(&mut self, entity: Entity) {
@@ -126,7 +128,7 @@ impl<'a> EntitySystemBuilder<'a> {
 
     pub fn with_sort<S>(self, sort: S) -> Self
     where
-        S: Fn(&Box<Any>, &Box<Any>) -> Ordering + 'static,
+        S: Fn(&Box<Any>, &Box<Any>) -> Option<Ordering> + 'static,
     {
         self.entity_system_manager
             .register_sort(sort, self.entity_system_id);
@@ -180,7 +182,7 @@ impl EntitySystemManager {
 
     pub fn register_sort<S>(&mut self, sort: S, system_id: u32)
     where
-        S: Fn(&Box<Any>, &Box<Any>) -> Ordering + 'static,
+        S: Fn(&Box<Any>, &Box<Any>) -> Option<Ordering> + 'static,
     {
         self.entity_systems.get_mut(&system_id).unwrap().sort = Some(Arc::new(sort));
     }
