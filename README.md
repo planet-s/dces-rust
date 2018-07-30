@@ -1,6 +1,8 @@
 # DCES: Dedicated Component Entity System
 Based on Entity Component System: https://en.wikipedia.org/wiki/Entity–component–system
 
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
 ## DCES_ENGINE
 * Developer Interface
 * Iterate over ES
