@@ -19,7 +19,7 @@ impl World {
     pub fn new() -> Self {
         Default::default()
     }
-    
+
     /// Creates a new entity and returns a returns an `EntityBuilder`.
     pub fn create_entity(&mut self) -> EntityBuilder {
         let entity = self.entity_counter;
@@ -47,7 +47,7 @@ impl World {
 
         EntitySystemBuilder {
             entity_system_manager: &mut self.entity_system_manager,
-            entity_component_manager: &mut self.entity_component_manager,
+            entities: &self.entity_component_manager.entities,
             entity_system_id,
         }
     }
@@ -55,6 +55,12 @@ impl World {
     /// Removes the given `entity`.
     pub fn delete_system(&mut self, system_id: &u32) {
         self.entity_system_manager.remove_system(system_id);
+    }
+
+    /// Apply all system filter and sort. This is only a temporary solution. The next version
+    /// of the library will contains a implicit solution.
+    pub fn apply_filter_and_sort(&mut self) {
+        self.entity_system_manager.apply_filter_and_sort(&self.entity_component_manager.entities);
     }
 
     /// Run all systems of the world.
@@ -75,6 +81,4 @@ impl World {
             }
         }
     }
-
-    // todo: filter and sort @ end
 }

@@ -1,1 +1,1 @@
-pub use {Component, Entity, EntityComponentManager, System, World};
+pub use {Component, Entity, EntityComponentManager, Priority, System, World};

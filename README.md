@@ -41,17 +41,27 @@ Notice: The library is still in beta. API changes are possible.
  }
 ```
 
+## Future features
+
+* Apply implicit system filter and sort
+* Concurrency of systems with same priority
+* Advanced example
+* Speed up system entity sort / filter (run over entities -> add to system by filter)
+
 ## World
+
 * Developer Interface
 * Iterate over ES
 * Handles ECS
 
 ## ECM: Entity Component Manager (singelton)
+
 * Knows all entities as ids
 * Contains vector of all components
 * Components referenced by entity ids
 
 ## ES: Entity System (0..n)
+
 * Knows filtered subset of entities e.g. render entities for render system
 * Provides one system run function
 * Read and write to components
