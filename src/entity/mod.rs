@@ -21,7 +21,7 @@ pub struct ComponentBox {
 /// This sturct is used to store a component with its type id. Used for dynamic compement adding.
 impl ComponentBox {
     /// Creates the component box.
-     pub fn new<C: Component>(component: C) -> Self {
+    pub fn new<C: Component>(component: C) -> Self {
         ComponentBox {
             component: Box::new(component),
             type_id: TypeId::of::<C>(),
@@ -30,7 +30,7 @@ impl ComponentBox {
 
     /// Consumes the component box and returns the type id and the component.
     pub fn consume(self) -> (TypeId, Box<Any>) {
-       (self.type_id, self.component)
+        (self.type_id, self.component)
     }
 }
 
@@ -52,9 +52,10 @@ impl<'a> EntityBuilder<'a> {
         self
     }
 
-    /// Adds a component box to the entity. 
+    /// Adds a component box to the entity.
     pub fn with_box(self, component_box: ComponentBox) -> Self {
-        self.entity_component_manager.register_component_box(&self.entity, component_box);
+        self.entity_component_manager
+            .register_component_box(&self.entity, component_box);
         self
     }
 
@@ -95,7 +96,7 @@ impl EntityComponentManager {
             .insert(TypeId::of::<C>(), Box::new(component));
     }
 
-        /// Register a `component_box` for the given `entity`.
+    /// Register a `component_box` for the given `entity`.
     pub fn register_component_box(&mut self, entity: &Entity, component_box: ComponentBox) {
         let (type_id, component) = component_box.consume();
 
