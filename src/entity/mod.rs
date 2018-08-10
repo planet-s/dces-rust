@@ -13,6 +13,27 @@ pub type Entity = u32;
 pub trait Component: Any {}
 impl<T: Any> Component for T {}
 
+pub struct ComponentBox {
+    component: Box<Any>,
+    type_id: TypeId,
+}
+
+/// This sturct is used to store a component with its type id. Used for dynamic compement adding.
+impl ComponentBox {
+    /// Creates the component box.
+     pub fn new<C: Component>(component: C) -> Self {
+        ComponentBox {
+            component: Box::new(component),
+            type_id: TypeId::of::<C>(),
+        }
+    }
+
+    /// Consumes the component box and returns the type id and the component.
+    pub fn consume(self) -> (TypeId, Box<Any>) {
+       (self.type_id, self.component)
+    }
+}
+
 /// The entity builder is used to create an entity with components.
 pub struct EntityBuilder<'a> {
     /// The created entity.
@@ -24,10 +45,16 @@ pub struct EntityBuilder<'a> {
 }
 
 impl<'a> EntityBuilder<'a> {
-    /// Add a component of type `C` to the entity.
+    /// Adds a component of type `C` to the entity.
     pub fn with<C: Component>(self, component: C) -> Self {
         self.entity_component_manager
             .register_component(&self.entity, component);
+        self
+    }
+
+    /// Adds a component box to the entity. 
+    pub fn with_box(self, component_box: ComponentBox) -> Self {
+        self.entity_component_manager.register_component_box(&self.entity, component_box);
         self
     }
 
@@ -66,6 +93,16 @@ impl EntityComponentManager {
             .get_mut(entity)
             .get_or_insert(&mut HashMap::new())
             .insert(TypeId::of::<C>(), Box::new(component));
+    }
+
+        /// Register a `component_box` for the given `entity`.
+    pub fn register_component_box(&mut self, entity: &Entity, component_box: ComponentBox) {
+        let (type_id, component) = component_box.consume();
+
+        self.entities
+            .get_mut(entity)
+            .get_or_insert(&mut HashMap::new())
+            .insert(type_id, component);
     }
 
     /// Returns a refernce of a component of type `C` from the given `entity`. If the entity does

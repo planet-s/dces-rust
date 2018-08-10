@@ -9,7 +9,7 @@ use error::NotFound;
 #[cfg(test)]
 mod tests;
 
-/// The run order of a system. The systems will be excuted by priority from small to great. 
+/// The run order of a system. The systems will be excuted by priority from small to great.
 pub type Priority = i32;
 
 /// This trait is used to interact with the components of entities. It could
@@ -26,7 +26,7 @@ pub struct EntitySystem {
     /// List of filtered / sorted system entities.
     pub entities: Vec<Entity>,
     filter: Option<Arc<Fn(Vec<&Box<Any>>) -> bool>>,
-    priority: Priority,  
+    priority: Priority,
     sort: Option<Arc<Fn(&Box<Any>, &Box<Any>) -> Option<Ordering>>>,
 }
 
@@ -84,12 +84,11 @@ impl EntitySystem {
     /// Remove the given `entity` from the system.
     pub fn remove_entity(&mut self, entity: &Entity) {
         if !self.entities.contains(entity) {
-            return
+            return;
         }
 
         let mut remove_index = 0;
         for i in 0..self.entities.len() {
-            
             if self.entities[i] == *entity {
                 remove_index = i;
                 break;
@@ -174,6 +173,9 @@ impl EntitySystemManager {
     pub fn register_system<S: System>(&mut self, system: S, system_id: u32) {
         self.entity_systems
             .insert(system_id, EntitySystem::new(Box::new(system)));
+
+        // register default priority
+        self.register_priority(&0, &system_id);
     }
 
     /// Removes a system from the storage.
@@ -191,14 +193,34 @@ impl EntitySystemManager {
 
     /// Register a `priority` for the system with the given `system_id`.
     pub fn register_priority(&mut self, priority: &Priority, system_id: &u32) {
-        self.priorities.remove(priority);
+        // clear old priorioty
+        let old_priority = self.entity_systems.get_mut(&system_id).unwrap().priority;
+
+        if self.priorities.contains_key(&old_priority) {
+            let mut remove_index = 0;
+            let priority_len = self.priorities.get(&old_priority).unwrap().len();
+
+            for i in 0..priority_len {
+                if self.priorities.get(&old_priority).unwrap()[i] == *system_id {
+                    remove_index = i;
+                    break;
+                }
+            }
+
+            if remove_index < priority_len {
+                self.priorities
+                    .get_mut(&old_priority)
+                    .unwrap()
+                    .remove(remove_index);
+            }
+        }
+
         self.entity_systems.get_mut(&system_id).unwrap().priority = *priority;
 
         if self.priorities.contains_key(&priority) {
             self.priorities.get_mut(&priority).unwrap().push(*system_id);
         } else {
-            let vec = vec![*system_id];
-            self.priorities.insert(*priority, vec);
+            self.priorities.insert(*priority, vec![*system_id]);
         }
     }
 
@@ -219,9 +241,9 @@ impl EntitySystemManager {
 
     /// Filters and sort the entities of a system.
     pub fn apply_filter_and_sort(&mut self, entities: &HashMap<Entity, HashMap<TypeId, Box<Any>>>) {
-         for (_, es) in &mut self.entity_systems {
-             es.apply_filter_and_sort(entities);
-         }
+        for (_, es) in &mut self.entity_systems {
+            es.apply_filter_and_sort(entities);
+        }
     }
 
     /// Returns a refernce of a entity system. If the entity system does not exists `NotFound` will be returned.

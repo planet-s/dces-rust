@@ -11,7 +11,9 @@
 //! * Filter and sort entities for systems
 //! * Define priorities (run order) for systems
 //!
-//! Notice: The library is still in beta. API changes are possible.
+//! **The library is still WIP. API changes are possible.**
+//! 
+//! [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 //!
 //! # Example
 //!

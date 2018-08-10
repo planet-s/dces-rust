@@ -7,7 +7,7 @@ DCES is a library that provides a variant of the Entity Component System: https:
 * Filter and sort entities for systems
 * Define priorities (run order) for systems
 
-Notice: The library is still in beta. API changes are possible.
+> The library is still WIP. API changes are possible.
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
@@ -47,6 +47,7 @@ Notice: The library is still in beta. API changes are possible.
 * Concurrency of systems with same priority
 * Advanced example
 * Speed up system entity sort / filter (run over entities -> add to system by filter)
+* Book
 
 ## World
 
@@ -65,3 +66,8 @@ Notice: The library is still in beta. API changes are possible.
 * Knows filtered subset of entities e.g. render entities for render system
 * Provides one system run function
 * Read and write to components
+
+## Inspirations
+
+* [Specs - Parallel ECS](https://github.com/slide-rs/specs)
+* [Rustic Entity-Component System](https://github.com/AndyBarron/rustic-ecs)
