@@ -29,7 +29,7 @@ impl System for PrintSystem {
         for entity in entities {
             if let Ok(name) = ecm.borrow_component::<Name>(*entity) {
                 if let Ok(size) = ecm.borrow_component::<Size>(*entity) {
-                    println!("{} width: {}; height: {}", name.0, size.width, size.height);
+                   println!("{} width: {}; height: {}", name.0, size.width, size.height);
                 }
             }
         }
@@ -81,7 +81,7 @@ fn main() {
 
     world
         .create_system(PrintSystem)
-        .with_priority(&1)
+        .with_priority(1)
 
         // filter entities with Name components
         .with_filter(|comp| {
@@ -113,7 +113,7 @@ fn main() {
             Some(depth_a.0.cmp(&depth_b.0))
         }).build();
 
-        world.create_system(SizeSystem).with_priority(&0).build();
+        world.create_system(SizeSystem).with_priority(0).build();
 
     world.apply_filter_and_sort();
     world.run();

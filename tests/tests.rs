@@ -33,10 +33,10 @@ fn test_update() {
     world.create_entity().with(Counter(0)).build();
     world.create_entity().with(Counter(0)).build();
 
-    world.create_system(UpdateSystem).with_priority(&0).build();
+    world.create_system(UpdateSystem).with_priority(0).build();
     world
         .create_system(TestUpdateSystem(1))
-        .with_priority(&1)
+        .with_priority(1)
         .build();
     world.run();
 }

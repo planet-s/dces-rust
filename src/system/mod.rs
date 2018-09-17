@@ -2,6 +2,7 @@ use std::any::{Any, TypeId};
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
+use std::cell::Cell;
 
 use entity::{Entity, EntityComponentManager};
 use error::NotFound;
@@ -82,14 +83,14 @@ impl EntitySystem {
     }
 
     /// Remove the given `entity` from the system.
-    pub fn remove_entity(&mut self, entity: &Entity) {
-        if !self.entities.contains(entity) {
+    pub fn remove_entity(&mut self, entity: Entity) {
+        if !self.entities.contains(&entity) {
             return;
         }
 
         let mut remove_index = 0;
         for i in 0..self.entities.len() {
-            if self.entities[i] == *entity {
+            if self.entities[i] == entity {
                 remove_index = i;
                 break;
             }
@@ -110,6 +111,8 @@ pub struct EntitySystemBuilder<'a> {
 
     /// List of entities. Used to generate a filterd and sorted list of entities per system.
     pub entities: &'a HashMap<Entity, HashMap<TypeId, Box<Any>>>,
+
+    pub priority: Cell<i32>,
 }
 
 impl<'a> EntitySystemBuilder<'a> {
@@ -119,14 +122,13 @@ impl<'a> EntitySystemBuilder<'a> {
         F: Fn(Vec<&Box<Any>>) -> bool + 'static,
     {
         self.entity_system_manager
-            .register_filter(filter, &self.entity_system_id);
+            .register_filter(filter, self.entity_system_id);
         self
     }
 
     /// Add a `priority` to the system. Default priority is 0.
-    pub fn with_priority(self, priority: &Priority) -> Self {
-        self.entity_system_manager
-            .register_priority(priority, &self.entity_system_id);
+    pub fn with_priority(self, priority: Priority) -> Self {
+        self.priority.set(priority);
         self
     }
 
@@ -136,15 +138,17 @@ impl<'a> EntitySystemBuilder<'a> {
         S: Fn(&Box<Any>, &Box<Any>) -> Option<Ordering> + 'static,
     {
         self.entity_system_manager
-            .register_sort(sort, &self.entity_system_id);
+            .register_sort(sort, self.entity_system_id);
         self
     }
 
     /// Finishing the creation of the system.
     pub fn build(self) -> u32 {
+        println!("Sys: {}, Prio: {} ",self.entity_system_id, self.priority.get());
+        self.entity_system_manager.register_priority(self.priority.get(), self.entity_system_id);
         let entity_system = self
             .entity_system_manager
-            .borrow_mut_entity_system(&self.entity_system_id)
+            .borrow_mut_entity_system(self.entity_system_id)
             .unwrap();
 
         entity_system.apply_filter_and_sort(self.entities);
@@ -173,67 +177,44 @@ impl EntitySystemManager {
     pub fn register_system<S: System>(&mut self, system: S, system_id: u32) {
         self.entity_systems
             .insert(system_id, EntitySystem::new(Box::new(system)));
-
-        // register default priority
-        self.register_priority(&0, &system_id);
     }
 
     /// Removes a system from the storage.
-    pub fn remove_system(&mut self, system_id: &u32) {
-        self.entity_systems.remove(system_id);
+    pub fn remove_system(&mut self, system_id: u32) {
+        self.entity_systems.remove(&system_id);
     }
 
     /// Register a `filter` for the system with the given `system_id`.
-    pub fn register_filter<F>(&mut self, filter: F, system_id: &u32)
+    pub fn register_filter<F>(&mut self, filter: F, system_id: u32)
     where
         F: Fn(Vec<&Box<Any>>) -> bool + 'static,
     {
-        self.entity_systems.get_mut(system_id).unwrap().filter = Some(Arc::new(filter));
+        self.entity_systems.get_mut(&system_id).unwrap().filter = Some(Arc::new(filter));
     }
 
     /// Register a `priority` for the system with the given `system_id`.
-    pub fn register_priority(&mut self, priority: &Priority, system_id: &u32) {
-        // clear old priorioty
-        let old_priority = self.entity_systems.get_mut(&system_id).unwrap().priority;
+    pub fn register_priority(&mut self, priority: Priority, system_id: u32) {
+        self.entity_systems.get_mut(&system_id).unwrap().priority = priority;
 
-        if self.priorities.contains_key(&old_priority) {
-            let mut remove_index = 0;
-            let priority_len = self.priorities.get(&old_priority).unwrap().len();
-
-            for i in 0..priority_len {
-                if self.priorities.get(&old_priority).unwrap()[i] == *system_id {
-                    remove_index = i;
-                    break;
-                }
-            }
-
-            if remove_index < priority_len {
-                self.priorities
-                    .get_mut(&old_priority)
-                    .unwrap()
-                    .remove(remove_index);
-            }
+        // insert new priority and add system to it.
+        if !self.priorities.contains_key(&priority) {
+            self.priorities.insert(priority, vec![system_id]);
+            return
         }
 
-        self.entity_systems.get_mut(&system_id).unwrap().priority = *priority;
-
-        if self.priorities.contains_key(&priority) {
-            self.priorities.get_mut(&priority).unwrap().push(*system_id);
-        } else {
-            self.priorities.insert(*priority, vec![*system_id]);
-        }
+        self.priorities.get_mut(&priority).unwrap().push(system_id);
     }
 
     /// Register a `sort` for the system with the given `system_id`.
-    pub fn register_sort<S>(&mut self, sort: S, system_id: &u32)
+    pub fn register_sort<S>(&mut self, sort: S, system_id: u32)
     where
         S: Fn(&Box<Any>, &Box<Any>) -> Option<Ordering> + 'static,
     {
-        self.entity_systems.get_mut(system_id).unwrap().sort = Some(Arc::new(sort));
+        self.entity_systems.get_mut(&system_id).unwrap().sort = Some(Arc::new(sort));
     }
 
     /// Removes the give `entity` from all systems.
-    pub fn remove_entity(&mut self, entity: &Entity) {
+    pub fn remove_entity(&mut self, entity: Entity) {
         for (_, es) in &mut self.entity_systems {
             es.remove_entity(entity);
         }
@@ -247,9 +228,9 @@ impl EntitySystemManager {
     }
 
     /// Returns a refernce of a entity system. If the entity system does not exists `NotFound` will be returned.
-    pub fn borrow_entity_system(&self, entity_system_id: &u32) -> Result<&EntitySystem, NotFound> {
-        self.entity_systems.get(entity_system_id).map_or_else(
-            || Err(NotFound::EntitySystem(*entity_system_id)),
+    pub fn borrow_entity_system(&self, entity_system_id: u32) -> Result<&EntitySystem, NotFound> {
+        self.entity_systems.get(&entity_system_id).map_or_else(
+            || Err(NotFound::EntitySystem(entity_system_id)),
             |es| Ok(es),
         )
     }
@@ -257,10 +238,10 @@ impl EntitySystemManager {
     /// Returns a mutable refernce of a entity system. If the entity system does not exists `NotFound` will be returned.
     pub fn borrow_mut_entity_system(
         &mut self,
-        entity_system_id: &u32,
+        entity_system_id: u32,
     ) -> Result<&mut EntitySystem, NotFound> {
-        self.entity_systems.get_mut(entity_system_id).map_or_else(
-            || Err(NotFound::EntitySystem(*entity_system_id)),
+        self.entity_systems.get_mut(&entity_system_id).map_or_else(
+            || Err(NotFound::EntitySystem(entity_system_id)),
             |es| Ok(es),
         )
     }

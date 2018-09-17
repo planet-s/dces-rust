@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use entity::{Entity, EntityBuilder, EntityComponentManager};
 use system::{EntitySystemBuilder, EntitySystemManager, System};
 
@@ -33,7 +34,7 @@ impl World {
     }
 
     /// Deletes the given `entity`.
-    pub fn delete_entity(&mut self, entity: &Entity) {
+    pub fn delete_entity(&mut self, entity: Entity) {
         self.entity_component_manager.remove_entity(entity);
         self.entity_system_manager.remove_entity(entity);
     }
@@ -49,11 +50,12 @@ impl World {
             entity_system_manager: &mut self.entity_system_manager,
             entities: &self.entity_component_manager.entities,
             entity_system_id,
+            priority: Cell::new(0),
         }
     }
 
     /// Removes the given `entity`.
-    pub fn delete_system(&mut self, system_id: &u32) {
+    pub fn delete_system(&mut self, system_id: u32) {
         self.entity_system_manager.remove_system(system_id);
     }
 
@@ -66,15 +68,19 @@ impl World {
     /// Run all systems of the world.
     pub fn run(&mut self) {
         let priorities = &self.entity_system_manager.priorities;
-        for (_, prio) in priorities {
+        for (priom, prio) in priorities {
+            
             for system in prio {
+
+                println!("Run System {}, Prio {}", system, priom);
+
                 let entities = &self
                     .entity_system_manager
-                    .borrow_entity_system(system)
+                    .borrow_entity_system(*system)
                     .unwrap()
                     .entities;
                 self.entity_system_manager
-                    .borrow_entity_system(system)
+                    .borrow_entity_system(*system)
                     .unwrap()
                     .system
                     .run(entities, &mut self.entity_component_manager);

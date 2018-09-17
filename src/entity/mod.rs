@@ -48,14 +48,14 @@ impl<'a> EntityBuilder<'a> {
     /// Adds a component of type `C` to the entity.
     pub fn with<C: Component>(self, component: C) -> Self {
         self.entity_component_manager
-            .register_component(&self.entity, component);
+            .register_component(self.entity, component);
         self
     }
 
     /// Adds a component box to the entity.
     pub fn with_box(self, component_box: ComponentBox) -> Self {
         self.entity_component_manager
-            .register_component_box(&self.entity, component_box);
+            .register_component_box(self.entity, component_box);
         self
     }
 
@@ -84,24 +84,24 @@ impl EntityComponentManager {
     }
 
     /// Removes a `entity` from the manager.
-    pub fn remove_entity(&mut self, entity: &Entity) {
-        self.entities.remove(entity);
+    pub fn remove_entity(&mut self, entity: Entity) {
+        self.entities.remove(&entity);
     }
 
     /// Register a `component` for the given `entity`.
-    pub fn register_component<C: Component>(&mut self, entity: &Entity, component: C) {
+    pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
         self.entities
-            .get_mut(entity)
+            .get_mut(&entity)
             .get_or_insert(&mut HashMap::new())
             .insert(TypeId::of::<C>(), Box::new(component));
     }
 
     /// Register a `component_box` for the given `entity`.
-    pub fn register_component_box(&mut self, entity: &Entity, component_box: ComponentBox) {
+    pub fn register_component_box(&mut self, entity: Entity, component_box: ComponentBox) {
         let (type_id, component) = component_box.consume();
 
         self.entities
-            .get_mut(entity)
+            .get_mut(&entity)
             .get_or_insert(&mut HashMap::new())
             .insert(type_id, component);
     }

@@ -15,7 +15,7 @@ fn test_register_entity() {
 fn test_register_component() {
     let mut ecm = EntityComponentManager::new();
     ecm.register_entity(0);
-    ecm.register_component(&0, TestComponent);
+    ecm.register_component(0, TestComponent);
     assert!(ecm.borrow_component::<TestComponent>(0) == Ok(&TestComponent))
 }
 
