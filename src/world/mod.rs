@@ -68,12 +68,8 @@ impl World {
     /// Run all systems of the world.
     pub fn run(&mut self) {
         let priorities = &self.entity_system_manager.priorities;
-        for (priom, prio) in priorities {
-            
+        for (_, prio) in priorities {
             for system in prio {
-
-                println!("Run System {}, Prio {}", system, priom);
-
                 let entities = &self
                     .entity_system_manager
                     .borrow_entity_system(*system)

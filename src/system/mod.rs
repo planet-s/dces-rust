@@ -144,7 +144,6 @@ impl<'a> EntitySystemBuilder<'a> {
 
     /// Finishing the creation of the system.
     pub fn build(self) -> u32 {
-        println!("Sys: {}, Prio: {} ",self.entity_system_id, self.priority.get());
         self.entity_system_manager.register_priority(self.priority.get(), self.entity_system_id);
         let entity_system = self
             .entity_system_manager
