@@ -35,16 +35,18 @@ impl ComponentBox {
 }
 
 /// The entity builder is used to create an entity with components.
-pub struct EntityBuilder<'a> {
+pub struct EntityBuilder<'a, T> where T: EntityContainer {
     /// The created entity.
     pub entity: Entity,
 
     /// Reference to the entity component manager, used to add compoments
     /// to the entity.
     pub entity_component_manager: &'a mut EntityComponentManager,
+
+    pub entity_container: &'a mut T,
 }
 
-impl<'a> EntityBuilder<'a> {
+impl<'a, T> EntityBuilder<'a, T> where T: EntityContainer {
     /// Adds a component of type `C` to the entity.
     pub fn with<C: Component>(self, component: C) -> Self {
         self.entity_component_manager
@@ -61,6 +63,7 @@ impl<'a> EntityBuilder<'a> {
 
     /// Finishing the creation of the entity.
     pub fn build(self) -> Entity {
+        self.entity_container.register_entity(self.entity);
         self.entity
     }
 }
@@ -139,5 +142,34 @@ impl EntityComponentManager {
                         )
                     }).ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
             })
+    }
+}
+
+/// This trait is used to define a custom container for entities. 
+/// A entity container is used for entiy iteration inside of the 
+/// system's run methods.
+pub trait EntityContainer {
+    /// Registers the give 'entity'.
+    fn register_entity(&mut self, entity: Entity);
+
+    /// Removes the given 'entity'.
+    fn remove_entity(&mut self, entity: Entity);
+}
+
+/// VecEntityContainer is the default vector based implementation of an entiy container.
+#[derive(Default)]
+pub struct VecEntityContainer {
+    pub inner: Vec<Entity>
+}
+
+impl EntityContainer for VecEntityContainer {
+    fn register_entity(&mut self, entity: Entity) {
+        self.inner.push(entity);
+    }
+
+    fn remove_entity(&mut self, entity: Entity) {
+        self.inner.iter()
+        .position(|&n| n == entity)
+        .map(|e| self.inner.remove(e));
     }
 }

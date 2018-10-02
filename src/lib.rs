@@ -12,7 +12,7 @@
 //! * Define priorities (run order) for systems
 //!
 //! **The library is still WIP. API changes are possible.**
-//! 
+//!
 //! [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 //!
 //! # Example
@@ -44,7 +44,10 @@
 //!     world.run();
 //! }
 //! ```
-pub use self::entity::{Component, ComponentBox, Entity, EntityBuilder, EntityComponentManager};
+pub use self::entity::{
+    Component, ComponentBox, Entity, EntityBuilder, EntityComponentManager, EntityContainer,
+    VecEntityContainer,
+};
 pub use self::error::NotFound;
 pub use self::system::{EntitySystem, EntitySystemBuilder, EntitySystemManager, Priority, System};
 pub use self::world::World;

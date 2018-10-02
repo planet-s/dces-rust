@@ -1,1 +1,4 @@
-pub use {Component, ComponentBox, Entity, EntityComponentManager, Priority, System, World};
+pub use {
+    Component, ComponentBox, Entity, EntityComponentManager, EntityContainer, Priority, System,
+    VecEntityContainer, World,
+};

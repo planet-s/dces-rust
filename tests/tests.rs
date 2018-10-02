@@ -5,9 +5,9 @@ use dces::prelude::*;
 struct Counter(u32);
 
 struct UpdateSystem;
-impl System for UpdateSystem {
-    fn run(&self, entities: &Vec<Entity>, ecm: &mut EntityComponentManager) {
-        for entity in entities {
+impl System<VecEntityContainer> for UpdateSystem {
+    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
+        for entity in &entities.inner {
             if let Ok(comp) = ecm.borrow_mut_component::<Counter>(*entity) {
                 comp.0 += 1;
             }
@@ -16,9 +16,9 @@ impl System for UpdateSystem {
 }
 
 struct TestUpdateSystem(u32);
-impl System for TestUpdateSystem {
-    fn run(&self, entities: &Vec<Entity>, ecm: &mut EntityComponentManager) {
-        for entity in entities {
+impl System<VecEntityContainer> for TestUpdateSystem {
+    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
+        for entity in &entities.inner {
             if let Ok(comp) = ecm.borrow_mut_component::<Counter>(*entity) {
                 assert_eq!(comp.0, self.0);
             }
@@ -28,7 +28,7 @@ impl System for TestUpdateSystem {
 
 #[test]
 fn test_update() {
-    let mut world = World::new();
+    let mut world = World::<VecEntityContainer>::new();
 
     world.create_entity().with(Counter(0)).build();
     world.create_entity().with(Counter(0)).build();

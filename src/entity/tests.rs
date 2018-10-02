@@ -24,6 +24,7 @@ fn test_build() {
     let eb = EntityBuilder {
         entity: 0,
         entity_component_manager: &mut EntityComponentManager::new(),
+        entity_container: &mut VecEntityContainer::default(),
     };
 
     assert_eq!(eb.build(), 0);
@@ -38,6 +39,7 @@ fn test_with() {
         let eb = EntityBuilder {
             entity: 0,
             entity_component_manager: &mut ecm,
+            entity_container: &mut VecEntityContainer::default(),
         };
 
         eb.with(TestComponent);
