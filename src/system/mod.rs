@@ -36,7 +36,7 @@ impl<T> EntitySystem<T> {
 }
 
 /// The entity system builder is used to create an entity system.
-pub struct EntitySystemBuilder<'a, T> where T: EntityContainer {
+pub struct EntitySystemBuilder<'a, T> where T: EntityContainer + 'a {
     /// Id of the entity system.
     pub entity_system_id: u32,
 
