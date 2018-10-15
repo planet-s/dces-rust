@@ -1,8 +1,8 @@
 [package]
 name = "dces"
 version = "0.1.0"
-authors = ["orbtk focus time group"]
+authors = ["OrbTk Focus Time Group"]
 description = "DCES entity component system"
 license = "MIT"
 repository = "https://gitlab.com/orbtk/dces-rust"
-keywords = [ "ecs"]
+keywords = [ "ecs", "ui", "gamedev" ]

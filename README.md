@@ -43,10 +43,8 @@ DCES is a library that provides a variant of the Entity Component System: https:
 
 ## Future features
 
-* Apply implicit system filter and sort
 * Concurrency of systems with same priority
 * Advanced example
-* Speed up system entity sort / filter (run over entities -> add to system by filter)
 * Book
 
 ## World

@@ -35,7 +35,7 @@ impl ComponentBox {
 }
 
 /// The entity builder is used to create an entity with components.
-pub struct EntityBuilder<'a, T> where T: EntityContainer {
+pub struct EntityBuilder<'a, T> where T: EntityContainer + 'a {
     /// The created entity.
     pub entity: Entity,
 
