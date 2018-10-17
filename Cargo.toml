@@ -1,6 +1,6 @@
 [package]
 name = "dces"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["OrbTk Focus Time Group"]
 description = "DCES entity component system"
 license = "MIT"
