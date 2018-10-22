@@ -14,12 +14,33 @@ pub type Entity = u32;
 pub trait Component: Any {}
 impl<T: Any> Component for T {}
 
+/// This sturct is used to store a component with its type id. Used for dynamic compement adding.
 pub struct ComponentBox {
     component: Box<Any>,
     type_id: TypeId,
 }
 
-/// This sturct is used to store a component with its type id. Used for dynamic compement adding.
+/// This sturct is used to store a shared component with its type id. Used for dynamic compement adding.
+pub struct SharedComponentBox {
+    source: Entity,
+    type_id: TypeId,
+}
+
+impl SharedComponentBox {
+    /// Creates the shared component box.
+    pub fn new<C: Component>(source: Entity) -> Self {
+        SharedComponentBox {
+            source,
+            type_id: TypeId::of::<C>(),
+        }
+    }
+
+    /// Consumes the component box and returns the type id and the source.
+    pub fn consume(self) -> (TypeId, Entity) {
+        (self.type_id, self.source)
+    }
+}
+
 impl ComponentBox {
     /// Creates the component box.
     pub fn new<C: Component>(component: C) -> Self {
@@ -65,6 +86,13 @@ where
     pub fn with_shared<C: Component>(self, source: Entity) -> Self {
         self.entity_component_manager
             .register_shared_component::<C>(self.entity, source);
+        self
+    }
+
+    /// Adds an entity as `source` for a shared component box.
+    pub fn with_shared_box(self, source: SharedComponentBox) -> Self {
+        self.entity_component_manager
+            .register_shared_component_box(self.entity, source);
         self
     }
 
@@ -123,6 +151,16 @@ impl EntityComponentManager {
         self.shared[&target]
             .borrow_mut()
             .insert(TypeId::of::<C>(), source);
+    }
+
+    pub fn register_shared_component_box(&mut self, target: Entity, source: SharedComponentBox) {
+        if !self.shared.contains_key(&target) {
+            self.shared.insert(target, RefCell::new(HashMap::new()));
+        }
+
+        self.shared[&target]
+            .borrow_mut()
+            .insert(source.type_id, source.source);
     }
 
     /// Register a `component_box` for the given `entity`.
