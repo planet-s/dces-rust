@@ -1,6 +1,6 @@
 # 0.1.2 Shared components (wip)
 
-* Share components between entities
+* Shared components between entities
 
 # 0.1.1 Initial release
 
