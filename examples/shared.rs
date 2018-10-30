@@ -30,7 +30,7 @@ impl System<VecEntityContainer> for PrintSystem {
         for entity in &entities.inner {
             if let Ok(name) = ecm.borrow_component::<Name>(*entity) {
                 if let Ok(size) = ecm.borrow_component::<Size>(*entity) {
-                    println!("{} width: {}; height: {}", name.0, size.width, size.height);
+                    println!("entity: {}; name: {}; width: {}; height: {}", entity, name.0, size.width, size.height);
                 }
             }
         }
