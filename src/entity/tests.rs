@@ -19,6 +19,17 @@ fn test_register_component() {
     assert!(ecm.borrow_component::<TestComponent>(0) == Ok(&TestComponent))
 }
 
+
+#[test]
+fn test_register_shared_component() {
+    let mut ecm = EntityComponentManager::new();
+    ecm.register_entity(0);
+    ecm.register_component(0, TestComponent);
+    ecm.register_entity(1);
+    ecm.register_shared_component::<TestComponent>(1, 0);
+    assert!(ecm.borrow_component::<TestComponent>(1) == Ok(&TestComponent))
+}
+
 #[test]
 fn test_build() {
     let eb = EntityBuilder {
@@ -46,4 +57,34 @@ fn test_with() {
     }
 
     assert!(ecm.borrow_component::<TestComponent>(0) == Ok(&TestComponent))
+}
+
+#[test]
+fn test_with_shared() {
+    let mut ecm = EntityComponentManager::new();
+    ecm.register_entity(0);
+
+    {
+        let eb = EntityBuilder {
+            entity: 0,
+            entity_component_manager: &mut ecm,
+            entity_container: &mut VecEntityContainer::default(),
+        };
+
+        eb.with(TestComponent);
+    }
+
+    ecm.register_entity(1);
+
+     {
+        let eb = EntityBuilder {
+            entity: 1,
+            entity_component_manager: &mut ecm,
+            entity_container: &mut VecEntityContainer::default(),
+        };
+
+        eb.with_shared::<TestComponent>(0);
+    }
+
+    assert!(ecm.borrow_component::<TestComponent>(1) == Ok(&TestComponent))
 }

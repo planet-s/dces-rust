@@ -46,7 +46,7 @@
 //! ```
 pub use self::entity::{
     Component, ComponentBox, Entity, EntityBuilder, EntityComponentManager, EntityContainer,
-    VecEntityContainer,
+    SharedComponentBox, VecEntityContainer,
 };
 pub use self::error::NotFound;
 pub use self::system::{EntitySystem, EntitySystemBuilder, EntitySystemManager, Priority, System};

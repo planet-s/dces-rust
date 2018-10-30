@@ -1,3 +1,8 @@
+# 0.1.2 Shared components (wip)
+
+* Shared components between entities
+* Shared components example
+
 # 0.1.1 Initial release
 
 * Register entities with components using builder
