@@ -28,10 +28,10 @@ pub struct SharedComponentBox {
 
 impl SharedComponentBox {
     /// Creates the shared component box.
-    pub fn new<C: Component>(source: Entity) -> Self {
+    pub fn new(type_id: TypeId, source: Entity) -> Self {
         SharedComponentBox {
             source,
-            type_id: TypeId::of::<C>(),
+            type_id,
         }
     }
 
@@ -197,7 +197,7 @@ impl EntityComponentManager {
         Result::Ok(entity)
     }
 
-    /// Returns a refernce of a component of type `C` from the given `entity`. If the entity does
+    /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it dosen't have a component of type `C` `NotFound` will be returned.
     pub fn borrow_component<C: Component>(&self, entity: Entity) -> Result<&C, NotFound> {
         let target_entity = self.target_entity::<C>(entity);
@@ -220,7 +220,7 @@ impl EntityComponentManager {
         }
     }
 
-    /// Returns a mutable refernce of a component of type `C` from the given `entity`. If the entity does
+    /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it dosen't have a component of type `C` `NotFound` will be returned.
     pub fn borrow_mut_component<C: Component>(
         &mut self,

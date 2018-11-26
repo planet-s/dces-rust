@@ -105,7 +105,7 @@ impl<T> EntitySystemManager<T> where T: EntityContainer {
         self.priorities.get_mut(&priority).unwrap().push(system_id);
     }
 
-    /// Returns a refernce of a entity system. If the entity system does not exists `NotFound` will be returned.
+    /// Returns a reference of a entity system. If the entity system does not exists `NotFound` will be returned.
     pub fn borrow_entity_system(&self, entity_system_id: u32) -> Result<&EntitySystem<T>, NotFound> {
         self.entity_systems.get(&entity_system_id).map_or_else(
             || Err(NotFound::EntitySystem(entity_system_id)),
@@ -113,7 +113,7 @@ impl<T> EntitySystemManager<T> where T: EntityContainer {
         )
     }
 
-    /// Returns a mutable refernce of a entity system. If the entity system does not exists `NotFound` will be returned.
+    /// Returns a mutable reference of a entity system. If the entity system does not exists `NotFound` will be returned.
     pub fn borrow_mut_entity_system(
         &mut self,
         entity_system_id: u32,

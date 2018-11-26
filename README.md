@@ -66,6 +66,14 @@ You can start the `basic` example by executing the following command:
 cargo run --example basic
 ```
 
+## Build and run documenation
+
+You can build and run the latest documentation y executing the following command:
+
+```text
+cargo doc --no-deps --open
+```
+
 ## Future features
 
 * Concurrency of systems with same priority
