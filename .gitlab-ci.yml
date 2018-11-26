@@ -16,14 +16,8 @@ build:linux:
       - cargo/
       - target/
 
-test:linux:
-    stage: test
-    dependencies:
-        - build:linux
-    script:
-      - cargo test
-
 build:redox:
+  stage: build
   variables:
     CC: "x86_64-unknown-redox-gcc"
   before_script:
@@ -41,3 +35,9 @@ build:redox:
       - cargo/
       - target/
 
+test:linux:
+    stage: test
+    dependencies:
+        - build:linux
+    script:
+      - cargo test
