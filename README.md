@@ -31,31 +31,31 @@ dces = "0.1.1"
 ## Example
 
 ```rust
- extern crate dces;
- use dces::prelude::*;
+extern crate dces;
+use dces::prelude::*;
 
- struct Name { value: String }
+struct Name { value: String }
 
- struct PrintSystem;
+struct PrintSystem;
 
- impl System for PrintSystem {
-     fn run(&self, entities: &Vec<Entity>, ecm: &mut EntityComponentManager) {
-         for entity in entities {
-             if let Ok(comp) = ecm.borrow_component::<Name>(*entity) {
-                 println!("{}", comp.value);
-             }
-         }
-     }
- }
+impl System<VecEntityContainer> for PrintSystem {
+    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
+        for entity in &entities.inner {
+            if let Ok(comp) = ecm.borrow_component::<Name>(*entity) {
+                println!("{}", comp.value);
+            }
+        }
+    }
+}
 
- fn main() {
-     let mut world = World::new();
+fn main() {
+    let mut world = World::<VecEntityContainer>::new();
 
-     world.create_entity().with(Name { value: String::from("DCES") }).build();
-     world.create_system(PrintSystem).build();
+    world.create_entity().with(Name { value: String::from("DCES") }).build();
+    world.create_system(PrintSystem).build();
 
-     world.run();
- }
+    world.run();
+}
 ```
 
 You could find additional examples in the `examples/` directory.
