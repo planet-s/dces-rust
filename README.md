@@ -28,6 +28,13 @@ line to your `Cargo.toml` file:
 dces = "0.1.1"
 ```
 
+To use DCES master, just add the dependency
+line to your `Cargo.toml` file:
+
+```text
+dces = { git = https://gitlab.redox-os.org/redox-os/dces-rust.git }
+```
+
 ## Example
 
 ```rust
@@ -68,7 +75,7 @@ cargo run --example basic
 
 ## Build and run documenation
 
-You can build and run the latest documentation y executing the following command:
+You can build and run the latest documentation by executing the following command:
 
 ```text
 cargo doc --no-deps --open
