@@ -12,5 +12,5 @@ pub enum NotFound {
     /// EntitySystem could not be found
     EntitySystem(u32),
     /// Unkown error
-    Unkown
+    Unkown(String)
 }
