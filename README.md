@@ -89,3 +89,9 @@ cargo doc --no-deps --open
 
 * [Specs - Parallel ECS](https://github.com/slide-rs/specs)
 * [Rustic Entity-Component System](https://github.com/AndyBarron/rustic-ecs)
+
+## FAQ
+
+### Why not Specs
+Because DCES is developed to fulfill the requirements of OrbTk. To reduce the dependency tree of OrbTk
+DCES depends on zero crates.
