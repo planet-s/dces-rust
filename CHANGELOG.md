@@ -1,4 +1,4 @@
-# 0.1.2 Shared components (wip)
+# 0.1.2 Shared components
 
 * Shared components between entities
 * Shared components example
