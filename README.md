@@ -6,7 +6,7 @@ The goal of DCES is a lightweight ECS library with zero dependencies used by UI 
 
 [![Build status](https://gitlab.redox-os.org/redox-os/dces-rust/badges/master/build.svg)](https://gitlab.redox-os.org/redox-os/dces-rust/pipelines)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![crates.io](https://img.shields.io/badge/crates.io-v0.1.1-orange.svg)](https://crates.io/crates/dces)
+[![crates.io](https://img.shields.io/badge/crates.io-v0.1.2-orange.svg)](https://crates.io/crates/dces)
 [![docs.rs](https://docs.rs/dces/badge.svg)](https://docs.rs/dces)
 
 ## Features:
