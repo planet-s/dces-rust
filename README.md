@@ -1,7 +1,5 @@
 # DCES
 
-> DCES is still WIP.
-
 DCES is a library that provides a variant of the Entity Component System: https://en.wikipedia.org/wiki/Entity–component–system.
 
 The goal of DCES is a lightweight ECS library with zero dependencies used by UI frameworks and game engines. It is being developed as part of OrbTk an (G)UI framework written in Rust. All widgets and properties of OrbTk are handled by DCES. 
@@ -25,7 +23,7 @@ To include DCES in your project, just add the dependency
 line to your `Cargo.toml` file:
 
 ```text
-dces = "0.1.1"
+dces = "0.1.2"
 ```
 
 To use DCES master, just add the dependency
