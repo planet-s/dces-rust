@@ -1,7 +1,7 @@
 [package]
 name = "dces"
 version = "0.1.2"
-authors = ["OrbTk Focus Time Group"]
+authors = ["Florian Blasius <flovanpt@posteo.de>"]
 description = "DCES entity component system"
 documentation = "https://docs.rs/dces"
 license = "MIT"
