@@ -80,8 +80,13 @@ where
     }
 
     /// Removes the given `entity`.
-    pub fn remove_system(&mut self, system_id: u32) {       
+    pub fn remove_system(&mut self, system_id: u32) {
         self.entity_system_manager.remove_system(system_id);
+    }
+
+    /// Borrows mutable the entity component manager.
+    pub fn entity_component_manager(&mut self) -> &mut EntityComponentManager {
+        &mut self.entity_component_manager
     }
 
     /// Run all systems of the world.
