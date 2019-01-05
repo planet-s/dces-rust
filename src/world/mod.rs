@@ -19,6 +19,8 @@ where
     entity_container: T,
 }
 
+unsafe impl<T> Send for World<T> where T: EntityContainer {}
+
 impl<T> World<T>
 where
     T: EntityContainer,
