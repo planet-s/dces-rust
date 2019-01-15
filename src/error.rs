@@ -1,6 +1,6 @@
 use std::any::TypeId;
 
-use entity::Entity;
+use crate::entity::Entity;
 
 /// Not found error.
 #[derive(Debug, PartialEq, Eq)]

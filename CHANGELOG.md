@@ -1,5 +1,7 @@
 # 0.1.3 (WIP)
 
+* Rust edition 2018
+
 # 0.1.2 Shared components
 
 * Shared components between entities

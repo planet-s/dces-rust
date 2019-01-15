@@ -1,4 +1,4 @@
-use entity::VecEntityContainer;
+use crate::entity::VecEntityContainer;
 use super::*;
 
 struct TestSystem;

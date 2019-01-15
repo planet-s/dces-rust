@@ -2,8 +2,8 @@ use std::any::Any;
 use std::collections::{BTreeMap, HashMap};
 use std::cell::Cell;
 
-use entity::{EntityComponentManager, EntityContainer};
-use error::NotFound;
+use crate::entity::{EntityComponentManager, EntityContainer};
+use crate::error::NotFound;
 
 #[cfg(test)]
 mod tests;

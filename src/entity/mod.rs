@@ -2,7 +2,7 @@ use std::any::{Any, TypeId};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use error::NotFound;
+use crate::error::NotFound;
 
 #[cfg(test)]
 mod tests;

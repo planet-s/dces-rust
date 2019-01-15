@@ -1,6 +1,6 @@
-use entity::{Entity, EntityBuilder, EntityComponentManager, EntityContainer, VecEntityContainer};
+use crate::entity::{Entity, EntityBuilder, EntityComponentManager, EntityContainer, VecEntityContainer};
 use std::cell::Cell;
-use system::{EntitySystemBuilder, EntitySystemManager, System};
+use crate::system::{EntitySystemBuilder, EntitySystemManager, System};
 
 #[cfg(test)]
 mod tests;
