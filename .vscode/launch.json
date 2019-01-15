@@ -18,6 +18,17 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug minimal",
+            "program": "${workspaceFolder}/target/debug/examples/minimal",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build",
+            "sourceLanguages": [
+                "rust"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug shared",
             "program": "${workspaceFolder}/target/debug/examples/shared",
             "cwd": "${workspaceFolder}",

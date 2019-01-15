@@ -36,7 +36,6 @@ dces = { git = https://gitlab.redox-os.org/redox-os/dces-rust.git }
 ## Example
 
 ```rust
-extern crate dces;
 use dces::prelude::*;
 
 struct Name { value: String }
