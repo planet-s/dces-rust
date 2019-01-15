@@ -1,6 +1,9 @@
-use crate::entity::{Entity, EntityBuilder, EntityComponentManager, EntityContainer, VecEntityContainer};
 use std::cell::Cell;
-use crate::system::{EntitySystemBuilder, EntitySystemManager, System};
+
+use crate::{
+    entity::{Entity, EntityBuilder, EntityComponentManager, EntityContainer, VecEntityContainer},
+    system::{EntitySystemBuilder, EntitySystemManager, System},
+};
 
 #[cfg(test)]
 mod tests;
@@ -47,7 +50,7 @@ where
     }
 
     /// Creates a new entity and returns a returns an `EntityBuilder`.
-    pub fn create_entity(&mut self) -> EntityBuilder<T> {
+    pub fn create_entity(&mut self) -> EntityBuilder<'_, T> {
         let entity = self.entity_counter;
         self.entity_component_manager.register_entity(entity);
         self.entity_counter += 1;
@@ -66,7 +69,7 @@ where
     }
 
     /// Creates a new entity system and returns a returns an `EntitySystemBuilder`.
-    pub fn create_system<S: System<T>>(&mut self, system: S) -> EntitySystemBuilder<T> {
+    pub fn create_system(&mut self, system: impl System<T>) -> EntitySystemBuilder<'_, T> {
         let entity_system_id = self.entity_sytem_counter;
         self.entity_system_manager
             .register_system(system, entity_system_id);

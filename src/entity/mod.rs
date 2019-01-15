@@ -1,6 +1,8 @@
-use std::any::{Any, TypeId};
-use std::cell::RefCell;
-use std::collections::HashMap;
+use std::{
+    any::{Any, TypeId},
+    cell::RefCell,
+    collections::HashMap,
+};
 
 use crate::error::NotFound;
 
@@ -16,7 +18,7 @@ impl<T: Any> Component for T {}
 
 /// This sturct is used to store a component with its type id. Used for dynamic compement adding.
 pub struct ComponentBox {
-    component: Box<Any>,
+    component: Box<dyn Any>,
     type_id: TypeId,
 }
 
@@ -51,7 +53,7 @@ impl ComponentBox {
     }
 
     /// Consumes the component box and returns the type id and the component.
-    pub fn consume(self) -> (TypeId, Box<Any>) {
+    pub fn consume(self) -> (TypeId, Box<dyn Any>) {
         (self.type_id, self.component)
     }
 }
@@ -59,7 +61,7 @@ impl ComponentBox {
 /// The entity builder is used to create an entity with components.
 pub struct EntityBuilder<'a, T>
 where
-    T: EntityContainer + 'a,
+    T: EntityContainer,
 {
     /// The created entity.
     pub entity: Entity,
@@ -114,7 +116,7 @@ where
 #[derive(Default)]
 pub struct EntityComponentManager {
     /// The entities with its components.
-    pub entities: HashMap<Entity, HashMap<TypeId, Box<Any>>>,
+    pub entities: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
 
     pub shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
 }

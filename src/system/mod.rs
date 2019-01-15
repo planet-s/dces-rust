@@ -1,9 +1,13 @@
-use std::any::Any;
-use std::collections::{BTreeMap, HashMap};
-use std::cell::Cell;
+use std::{
+    any::Any,
+    cell::Cell,
+    collections::{BTreeMap, HashMap},
+};
 
-use crate::entity::{EntityComponentManager, EntityContainer};
-use crate::error::NotFound;
+use crate::{
+    entity::{EntityComponentManager, EntityContainer},
+    error::NotFound,
+};
 
 #[cfg(test)]
 mod tests;
@@ -13,21 +17,24 @@ pub type Priority = i32;
 
 /// This trait is used to interact with the components of entities. It could
 /// read and write to the components.
-pub trait System<T>: Any where T: EntityContainer {
+pub trait System<T>: Any
+where
+    T: EntityContainer,
+{
     fn run(&self, entities: &T, ecm: &mut EntityComponentManager);
 }
 
 /// Internal wrapper for a system. Contains also filter, priority, sort and entities.
 pub struct EntitySystem<T> {
     /// The wrapped system.
-    pub system: Box<System<T>>,
+    pub system: Box<dyn System<T>>,
 
     priority: Priority,
 }
 
 impl<T> EntitySystem<T> {
     /// Create a new entity system.
-    pub fn new(system: Box<System<T>>) -> Self {
+    pub fn new(system: Box<dyn System<T>>) -> Self {
         EntitySystem {
             system,
             priority: 0,
@@ -36,7 +43,10 @@ impl<T> EntitySystem<T> {
 }
 
 /// The entity system builder is used to create an entity system.
-pub struct EntitySystemBuilder<'a, T> where T: EntityContainer + 'a {
+pub struct EntitySystemBuilder<'a, T>
+where
+    T: EntityContainer,
+{
     /// Id of the entity system.
     pub entity_system_id: u32,
 
@@ -48,7 +58,10 @@ pub struct EntitySystemBuilder<'a, T> where T: EntityContainer + 'a {
     pub priority: Cell<i32>,
 }
 
-impl<'a, T> EntitySystemBuilder<'a, T> where T: EntityContainer {
+impl<'a, T> EntitySystemBuilder<'a, T>
+where
+    T: EntityContainer,
+{
     /// Add a `priority` to the system. Default priority is 0.
     pub fn with_priority(self, priority: Priority) -> Self {
         self.priority.set(priority);
@@ -57,14 +70,18 @@ impl<'a, T> EntitySystemBuilder<'a, T> where T: EntityContainer {
 
     /// Finishing the creation of the system.
     pub fn build(self) -> u32 {
-        self.entity_system_manager.register_priority(self.priority.get(), self.entity_system_id);
+        self.entity_system_manager
+            .register_priority(self.priority.get(), self.entity_system_id);
         self.entity_system_id
     }
 }
 
 /// The EntitySystemManager represents the main system storage.
 #[derive(Default)]
-pub struct EntitySystemManager<T> where T: EntityContainer {
+pub struct EntitySystemManager<T>
+where
+    T: EntityContainer,
+{
     /// The entity systems.
     entity_systems: HashMap<u32, EntitySystem<T>>,
 
@@ -72,7 +89,10 @@ pub struct EntitySystemManager<T> where T: EntityContainer {
     pub priorities: BTreeMap<i32, Vec<u32>>,
 }
 
-impl<T> EntitySystemManager<T> where T: EntityContainer {
+impl<T> EntitySystemManager<T>
+where
+    T: EntityContainer,
+{
     /// Creates a new entity system manager.
     pub fn new() -> Self {
         EntitySystemManager {
@@ -82,7 +102,7 @@ impl<T> EntitySystemManager<T> where T: EntityContainer {
     }
 
     /// Register a new `system`.
-    pub fn register_system<S: System<T>>(&mut self, system: S, system_id: u32) {
+    pub fn register_system(&mut self, system: impl System<T>, system_id: u32) {
         self.entity_systems
             .insert(system_id, EntitySystem::new(Box::new(system)));
     }
@@ -99,14 +119,17 @@ impl<T> EntitySystemManager<T> where T: EntityContainer {
         // insert new priority and add system to it.
         if !self.priorities.contains_key(&priority) {
             self.priorities.insert(priority, vec![system_id]);
-            return
+            return;
         }
 
         self.priorities.get_mut(&priority).unwrap().push(system_id);
     }
 
     /// Returns a reference of a entity system. If the entity system does not exists `NotFound` will be returned.
-    pub fn borrow_entity_system(&self, entity_system_id: u32) -> Result<&EntitySystem<T>, NotFound> {
+    pub fn borrow_entity_system(
+        &self,
+        entity_system_id: u32,
+    ) -> Result<&EntitySystem<T>, NotFound> {
         self.entity_systems.get(&entity_system_id).map_or_else(
             || Err(NotFound::EntitySystem(entity_system_id)),
             |es| Ok(es),
