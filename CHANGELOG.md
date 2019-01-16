@@ -1,6 +1,7 @@
 # 0.1.3 (WIP)
 
 * Rust edition 2018
+* Register init and cleanup system
 
 # 0.1.2 Shared components
 

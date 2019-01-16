@@ -18,6 +18,17 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug init cleanup",
+            "program": "${workspaceFolder}/target/debug/examples/init_cleanup",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build",
+            "sourceLanguages": [
+                "rust"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug minimal",
             "program": "${workspaceFolder}/target/debug/examples/minimal",
             "cwd": "${workspaceFolder}",

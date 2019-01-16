@@ -16,6 +16,26 @@ fn test_register_system() {
 }
 
 #[test]
+fn test_register_init_system() {
+    let mut esm = EntitySystemManager::new();
+
+    assert!(esm.init_system.is_none());
+    esm.register_init_system(TestSystem);
+    
+    assert!(esm.init_system.is_some());
+}
+
+#[test]
+fn test_register_cleanup_system() {
+    let mut esm = EntitySystemManager::new();
+
+    assert!(esm.cleanup_system.is_none());
+    esm.register_cleanup_system(TestSystem);
+    
+    assert!(esm.cleanup_system.is_some());
+}
+
+#[test]
 fn test_remove_system() {
     let mut esm = EntitySystemManager::new();
     esm.register_system(TestSystem, 0);
@@ -35,19 +55,27 @@ fn test_register_priority() {
 }
 
 #[test]
+fn test_borrow_init_entity_system() {
+    let mut esm = EntitySystemManager::new();
+    esm.register_init_system(TestSystem);
+    
+    assert!(esm.borrow_init_system().is_some());
+}
+
+#[test]
+fn test_borrow_cleanup_entity_system() {
+    let mut esm = EntitySystemManager::new();
+    esm.register_cleanup_system(TestSystem);
+    
+    assert!(esm.borrow_cleanup_system().is_some());
+}
+
+#[test]
 fn test_borrow_entity_system() {
     let mut esm = EntitySystemManager::new();
     esm.register_system(TestSystem, 0);
     
     assert!(esm.borrow_entity_system(0).is_ok());
-}
-
-#[test]
-fn test_borrow_mut_entity_system() {
-    let mut esm = EntitySystemManager::new();
-    esm.register_system(TestSystem, 0);
-    
-    assert!(esm.borrow_mut_entity_system(0).is_ok());
 }
 
 #[test]

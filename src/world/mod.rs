@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::{cell::Cell, ops::Drop};
 
 use crate::{
     entity::{Entity, EntityBuilder, EntityComponentManager, EntityContainer, VecEntityContainer},
@@ -20,6 +20,20 @@ where
     entity_counter: u32,
     entity_sytem_counter: u32,
     entity_container: T,
+    first_run: bool,
+}
+
+impl<T> Drop for World<T>
+where
+    T: EntityContainer,
+{
+    fn drop(&mut self) {
+        if let Some(cleanup_syste) = self.entity_system_manager.borrow_cleanup_system() {
+            cleanup_syste
+                .system
+                .run(&self.entity_container, &mut self.entity_component_manager);
+        }
+    }
 }
 
 unsafe impl<T> Send for World<T> where T: EntityContainer {}
@@ -41,6 +55,7 @@ where
             entity_counter: 0,
             entity_sytem_counter: 0,
             entity_container,
+            first_run: true,
         }
     }
 
@@ -66,6 +81,16 @@ where
     pub fn remove_entity(&mut self, entity: Entity) {
         self.entity_container.remove_entity(entity);
         self.entity_component_manager.remove_entity(entity);
+    }
+
+    /// Registers the init system.
+    pub fn register_init_system(&mut self, init_system: impl System<T>) {
+        self.entity_system_manager.register_init_system(init_system);
+    }
+
+    /// Registers the cleanup system.
+    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<T>) {
+        self.entity_system_manager.register_cleanup_system(cleanup_system);
     }
 
     /// Creates a new entity system and returns a returns an `EntitySystemBuilder`.
@@ -94,6 +119,15 @@ where
 
     /// Run all systems of the world.
     pub fn run(&mut self) {
+        if self.first_run {
+            if let Some(init_system) = self.entity_system_manager.borrow_init_system() {
+                init_system
+                    .system
+                    .run(&self.entity_container, &mut self.entity_component_manager);
+            }
+            self.first_run = false;
+        }
+
         let priorities = &self.entity_system_manager.priorities;
         for (_, prio) in priorities {
             for system in prio {

@@ -82,8 +82,14 @@ pub struct EntitySystemManager<T>
 where
     T: EntityContainer,
 {
-    /// The entity systems.
+    // The entity systems.
     entity_systems: HashMap<u32, EntitySystem<T>>,
+
+    // The init system.
+    init_system: Option<EntitySystem<T>>,
+
+    // The cleanup system.
+    cleanup_system: Option<EntitySystem<T>>,
 
     /// Priorities of the systems.
     pub priorities: BTreeMap<i32, Vec<u32>>,
@@ -93,15 +99,27 @@ impl<T> EntitySystemManager<T>
 where
     T: EntityContainer,
 {
-    /// Creates a new entity system manager.
+    /// Creates a new entity system manager with default values.
     pub fn new() -> Self {
         EntitySystemManager {
             entity_systems: HashMap::new(),
+            init_system: None,
+            cleanup_system: None,
             priorities: BTreeMap::new(),
         }
     }
 
-    /// Register a new `system`.
+    /// Registers the init system.
+    pub fn register_init_system(&mut self, init_system: impl System<T>) {
+        self.init_system = Some(EntitySystem::new(Box::new(init_system)));
+    }
+
+    /// Registers the cleanup system.
+    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<T>) {
+        self.cleanup_system = Some(EntitySystem::new(Box::new(cleanup_system)));
+    }
+
+    /// Registers a new `system`.
     pub fn register_system(&mut self, system: impl System<T>, system_id: u32) {
         self.entity_systems
             .insert(system_id, EntitySystem::new(Box::new(system)));
@@ -136,14 +154,17 @@ where
         )
     }
 
-    /// Returns a mutable reference of a entity system. If the entity system does not exists `NotFound` will be returned.
-    pub fn borrow_mut_entity_system(
-        &mut self,
-        entity_system_id: u32,
-    ) -> Result<&mut EntitySystem<T>, NotFound> {
-        self.entity_systems.get_mut(&entity_system_id).map_or_else(
-            || Err(NotFound::EntitySystem(entity_system_id)),
-            |es| Ok(es),
-        )
+    /// Returns a reference of the init entity system. If the init entity system does not exists `None` will be returned.
+    pub fn borrow_init_system(
+        &self,
+    ) -> &Option<EntitySystem<T>> {
+        &self.init_system
+    }
+
+    /// Returns a reference of the cleanup entity system. If the init entity system does not exists `None` will be returned.
+    pub fn borrow_cleanup_system(
+        &self,
+    ) -> &Option<EntitySystem<T>> {
+        &self.cleanup_system
     }
 }
