@@ -3,7 +3,7 @@ use std::any::TypeId;
 use crate::entity::Entity;
 
 /// Not found error.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NotFound {
     /// Entity could not be found
     Entity(Entity),
@@ -11,6 +11,12 @@ pub enum NotFound {
     Component(TypeId),
     /// EntitySystem could not be found
     EntitySystem(u32),
-    /// Unkown error
-    Unkown(String)
+    /// Unknown error
+    Unknown(String)
+}
+
+impl Default for NotFound {
+    fn default() -> Self {
+        NotFound::Unknown(String::default())
+    }
 }

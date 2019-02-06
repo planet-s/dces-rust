@@ -1,12 +1,15 @@
 use dces::prelude::*;
 
+#[derive(Default)]
 struct Size {
     width: u32,
     height: u32,
 }
 
+#[derive(Default)]
 struct Name(String);
 
+#[derive(Default)]
 struct Depth(u32);
 
 pub struct SizeSystem {

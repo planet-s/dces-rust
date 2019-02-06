@@ -1,5 +1,6 @@
 use dces::prelude::*;
 
+#[derive(Default)]
 struct Name { value: String }
 
 struct PrintSystem;

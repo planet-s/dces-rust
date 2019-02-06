@@ -2,6 +2,7 @@
 
 use dces::prelude::*;
 
+#[derive(Default)]
 struct Counter(u32);
 
 struct UpdateSystem;

@@ -16,13 +16,13 @@ pub type Entity = u32;
 pub trait Component: Any {}
 impl<T: Any> Component for T {}
 
-/// This sturct is used to store a component with its type id. Used for dynamic compement adding.
+/// This struct is used to store a component with its type id. Used for dynamic component adding.
 pub struct ComponentBox {
     component: Box<dyn Any>,
     type_id: TypeId,
 }
 
-/// This sturct is used to store a shared component with its type id. Used for dynamic compement adding.
+/// This struct is used to store a shared component with its type id. Used for dynamic component adding.
 pub struct SharedComponentBox {
     source: Entity,
     type_id: TypeId,
@@ -66,7 +66,7 @@ where
     /// The created entity.
     pub entity: Entity,
 
-    /// Reference to the entity component manager, used to add compoments
+    /// Reference to the entity component manager, used to add components
     /// to the entity.
     pub entity_component_manager: &'a mut EntityComponentManager,
 
@@ -200,8 +200,8 @@ impl EntityComponentManager {
     }
 
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
-    /// not exists or it dosen't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_component<C: Component>(&self, entity: Entity) -> Result<&C, NotFound> {
+    /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
+    pub fn borrow_component<C: Component + Default>(&self, entity: Entity) -> Result<&C, NotFound> {
         let target_entity = self.target_entity::<C>(entity);
 
         match target_entity {
@@ -223,8 +223,8 @@ impl EntityComponentManager {
     }
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
-    /// not exists or it dosen't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_mut_component<C: Component>(
+    /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
+    pub fn borrow_mut_component<C: Component + Default>(
         &mut self,
         entity: Entity,
     ) -> Result<&mut C, NotFound> {
@@ -250,7 +250,7 @@ impl EntityComponentManager {
 }
 
 /// This trait is used to define a custom container for entities.
-/// A entity container is used for entiy iteration inside of the
+/// A entity container is used for entity iteration inside of the
 /// system's run methods.
 pub trait EntityContainer {
     /// Registers the give 'entity'.
@@ -260,7 +260,7 @@ pub trait EntityContainer {
     fn remove_entity(&mut self, entity: Entity);
 }
 
-/// VecEntityContainer is the default vector based implementation of an entiy container.
+/// VecEntityContainer is the default vector based implementation of an entity container.
 #[derive(Default)]
 pub struct VecEntityContainer {
     pub inner: Vec<Entity>,
