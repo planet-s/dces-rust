@@ -39,6 +39,7 @@ dces = { git = https://gitlab.redox-os.org/redox-os/dces-rust.git }
 ```rust
 use dces::prelude::*;
 
+#[derive(Default)]
 struct Name { value: String }
 
 struct PrintSystem;

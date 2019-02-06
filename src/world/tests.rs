@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Default)]
 struct TestSystem;
 
 impl System<VecEntityContainer> for TestSystem {
