@@ -1,4 +1,5 @@
-use std::{cell::Cell, ops::Drop};
+use core::cell::Cell;
+use core::ops::Drop;
 
 use crate::{
     entity::{Entity, EntityBuilder, EntityComponentManager, EntityContainer, VecEntityContainer},

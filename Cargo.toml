@@ -1,6 +1,6 @@
 [package]
 name = "dces"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["Florian Blasius <flovanpt@posteo.de>"]
 description = "DCES entity component system"
 documentation = "https://docs.rs/dces"
@@ -9,3 +9,7 @@ repository = "https://gitlab.redox-os.org/redox-os/dces-rust"
 keywords = ["ecs", "ui", "gamedev"]
 readme = "README.md"
 edition = "2018"
+
+[features]
+default = []
+no_std = []

@@ -1,3 +1,7 @@
+# 0.1.7
+
+* Support for no_std feature
+
 # 0.1.3 / 0.1.4 / 0.1.5 / 0.1.6 Init and cleanup system
 
 * Rust edition 2018

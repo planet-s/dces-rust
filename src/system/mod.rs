@@ -1,8 +1,13 @@
-use std::{
+use core::{
     any::Any,
     cell::Cell,
-    collections::{BTreeMap, HashMap},
 };
+
+#[cfg(not(feature = "no_std"))]
+use std::collections::{BTreeMap, HashMap};
+
+#[cfg(feature = "no_std")]
+use alloc::collections::{BTreeMap, HashMap};
 
 use crate::{
     entity::{EntityComponentManager, EntityContainer},

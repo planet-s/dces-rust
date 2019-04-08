@@ -1,8 +1,13 @@
-use std::{
+use core::{
     any::{Any, TypeId},
     cell::RefCell,
-    collections::HashMap,
 };
+
+#![no_std]
+use std::collections::HashMap;
+
+#[cfg(feature = "no_std")]
+use alloc::collections::{BTreeMap, HashMap};
 
 use crate::error::NotFound;
 
@@ -31,10 +36,7 @@ pub struct SharedComponentBox {
 impl SharedComponentBox {
     /// Creates the shared component box.
     pub fn new(type_id: TypeId, source: Entity) -> Self {
-        SharedComponentBox {
-            source,
-            type_id,
-        }
+        SharedComponentBox { source, type_id }
     }
 
     /// Consumes the component box and returns the type id and the source.
