@@ -3,7 +3,7 @@ use core::{
     cell::RefCell,
 };
 
-#![no_std]
+// #![no_std]
 use std::collections::HashMap;
 
 #[cfg(feature = "no_std")]
@@ -15,7 +15,14 @@ use crate::error::NotFound;
 mod tests;
 
 /// Represents an entity.
-pub type Entity = u32;
+#[derive(Copy, Clone, PartialEq, Hash, Eq, Debug, Ord, PartialOrd, Default)]
+pub struct Entity(pub u32);
+
+impl From<u32> for Entity {
+    fn from(u: u32) -> Self {
+        Entity(u)
+    }
+}
 
 /// This trait is used to internal handle all components types. This trait is implicitly implemented for all other types.
 pub trait Component: Any {}
@@ -35,8 +42,8 @@ pub struct SharedComponentBox {
 
 impl SharedComponentBox {
     /// Creates the shared component box.
-    pub fn new(type_id: TypeId, source: Entity) -> Self {
-        SharedComponentBox { source, type_id }
+    pub fn new(type_id: TypeId, source: impl Into<Entity>) -> Self {
+        SharedComponentBox { source: source.into(), type_id }
     }
 
     /// Consumes the component box and returns the type id and the source.
@@ -124,19 +131,19 @@ pub struct EntityComponentManager {
 }
 
 impl EntityComponentManager {
-    /// Create sa new entity component manager.
+    /// Create a new entity component manager.
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Register a new `entity`.
-    pub fn register_entity(&mut self, entity: Entity) {
-        self.entities.insert(entity, HashMap::new());
+    /// Register a new `entity`.>
+    pub fn register_entity(&mut self, entity: impl Into<Entity>) {
+        self.entities.insert(entity.into(), HashMap::new());
     }
 
     /// Removes a `entity` from the manager.
-    pub fn remove_entity(&mut self, entity: Entity) {
-        self.entities.remove(&entity);
+    pub fn remove_entity(&mut self, entity: impl Into<Entity>) {
+        self.entities.remove(&entity.into());
     }
 
     /// Register a `component` for the given `entity`.
@@ -157,7 +164,8 @@ impl EntityComponentManager {
             .insert(TypeId::of::<C>(), source);
     }
 
-    pub fn register_shared_component_box(&mut self, target: Entity, source: SharedComponentBox) {
+    pub fn register_shared_component_box(&mut self, target: impl Into<Entity>, source: SharedComponentBox) {
+        let target = target.into();
         if !self.shared.contains_key(&target) {
             self.shared.insert(target, RefCell::new(HashMap::new()));
         }
@@ -168,7 +176,8 @@ impl EntityComponentManager {
     }
 
     /// Register a `component_box` for the given `entity`.
-    pub fn register_component_box(&mut self, entity: Entity, component_box: ComponentBox) {
+    pub fn register_component_box(&mut self, entity: impl Into<Entity>, component_box: ComponentBox) {
+        let entity = entity.into();
         let (type_id, component) = component_box.consume();
 
         self.entities
@@ -256,10 +265,10 @@ impl EntityComponentManager {
 /// system's run methods.
 pub trait EntityContainer {
     /// Registers the give 'entity'.
-    fn register_entity(&mut self, entity: Entity);
+    fn register_entity(&mut self, entity: impl Into<Entity>);
 
     /// Removes the given 'entity'.
-    fn remove_entity(&mut self, entity: Entity);
+    fn remove_entity(&mut self, entity: impl Into<Entity>);
 }
 
 /// VecEntityContainer is the default vector based implementation of an entity container.
@@ -269,11 +278,12 @@ pub struct VecEntityContainer {
 }
 
 impl EntityContainer for VecEntityContainer {
-    fn register_entity(&mut self, entity: Entity) {
-        self.inner.push(entity);
+    fn register_entity(&mut self, entity: impl Into<Entity>) {
+        self.inner.push(entity.into());
     }
 
-    fn remove_entity(&mut self, entity: Entity) {
+    fn remove_entity(&mut self, entity: impl Into<Entity>) {
+        let entity = entity.into();
         self.inner
             .iter()
             .position(|&n| n == entity)

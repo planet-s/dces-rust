@@ -67,7 +67,7 @@ where
 
     /// Creates a new entity and returns a returns an `EntityBuilder`.
     pub fn create_entity(&mut self) -> EntityBuilder<'_, T> {
-        let entity = self.entity_counter;
+        let entity: Entity = self.entity_counter.into();
         self.entity_component_manager.register_entity(entity);
         self.entity_counter += 1;
 
@@ -79,7 +79,8 @@ where
     }
 
     /// Deletes the given `entity`.
-    pub fn remove_entity(&mut self, entity: Entity) {
+    pub fn remove_entity(&mut self, entity: impl Into<Entity>) {
+        let entity = entity.into();
         self.entity_container.remove_entity(entity);
         self.entity_component_manager.remove_entity(entity);
     }
