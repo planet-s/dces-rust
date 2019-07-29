@@ -32,7 +32,7 @@ where
         if let Some(cleanup_syste) = self.entity_system_manager.borrow_cleanup_system() {
             cleanup_syste
                 .system
-                .run(&self.entity_container, &mut self.entity_component_manager);
+                .run(&mut self.entity_container, &mut self.entity_component_manager);
         }
     }
 }
@@ -125,7 +125,7 @@ where
             if let Some(init_system) = self.entity_system_manager.borrow_init_system() {
                 init_system
                     .system
-                    .run(&self.entity_container, &mut self.entity_component_manager);
+                    .run(&mut self.entity_container, &mut self.entity_component_manager);
             }
             self.first_run = false;
         }
@@ -137,7 +137,7 @@ where
                     .borrow_entity_system(*system)
                     .unwrap()
                     .system
-                    .run(&self.entity_container, &mut self.entity_component_manager);
+                    .run(&mut self.entity_container, &mut self.entity_component_manager);
             }
         }
     }

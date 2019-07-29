@@ -3,7 +3,7 @@ use dces::prelude::*;
 struct InitSystem;
 
 impl System<VecEntityContainer> for InitSystem {
-    fn run(&self, _: &VecEntityContainer, _: &mut EntityComponentManager) {
+    fn run(&self, _: &mut VecEntityContainer, _: &mut EntityComponentManager) {
         println!("Init");
     }
 }
@@ -11,7 +11,7 @@ impl System<VecEntityContainer> for InitSystem {
 struct CleanupSystem;
 
 impl System<VecEntityContainer> for CleanupSystem {
-    fn run(&self, _: &VecEntityContainer, _: &mut EntityComponentManager) {
+    fn run(&self, _: &mut VecEntityContainer, _: &mut EntityComponentManager) {
         println!("Cleanup");
     }
 }
@@ -19,7 +19,7 @@ impl System<VecEntityContainer> for CleanupSystem {
 struct PrintSystem;
 
 impl System<VecEntityContainer> for PrintSystem {
-    fn run(&self, _: &VecEntityContainer, _: &mut EntityComponentManager) {
+    fn run(&self, _: &mut VecEntityContainer, _: &mut EntityComponentManager) {
         println!("Print");
     }
 }

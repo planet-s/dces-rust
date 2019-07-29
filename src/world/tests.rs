@@ -4,7 +4,7 @@ use super::*;
 struct TestSystem;
 
 impl System<VecEntityContainer> for TestSystem {
-    fn run(&self, _entities: &VecEntityContainer, _ecm: &mut EntityComponentManager) {}
+    fn run(&self, _entities: &mut VecEntityContainer, _ecm: &mut EntityComponentManager) {}
 } 
 
 #[test]
