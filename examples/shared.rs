@@ -17,7 +17,7 @@ pub struct SizeSystem {
 }
 
 impl System<VecEntityContainer> for SizeSystem {
-    fn run(&self, _entities: &mut VecEntityContainer, ecm: &mut EntityComponentManager) {
+    fn run(&self, _entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
         if let Ok(comp) = ecm.borrow_mut_component::<Size>(self.source) {
             comp.width += 1;
             comp.height += 1;
@@ -27,7 +27,7 @@ impl System<VecEntityContainer> for SizeSystem {
 
 pub struct PrintSystem;
 impl System<VecEntityContainer> for PrintSystem {
-    fn run(&self, entities: &mut VecEntityContainer, ecm: &mut EntityComponentManager) {
+    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
         for entity in &entities.inner {
             if let Ok(name) = ecm.borrow_component::<Name>(*entity) {
                 if let Ok(size) = ecm.borrow_component::<Size>(*entity) {

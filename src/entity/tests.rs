@@ -35,7 +35,7 @@ fn test_build() {
     let eb = EntityBuilder {
         entity: 0.into(),
         entity_component_manager: &mut EntityComponentManager::new(),
-        entity_container: &mut VecEntityContainer::default(),
+        entity_container: &VecEntityContainer::default(),
     };
 
     assert_eq!(eb.build(), 0.into());
@@ -50,7 +50,7 @@ fn test_with() {
         let eb = EntityBuilder {
             entity: 0.into(),
             entity_component_manager: &mut ecm,
-            entity_container: &mut VecEntityContainer::default(),
+            entity_container: &VecEntityContainer::default(),
         };
 
         eb.with(TestComponent);
@@ -68,7 +68,7 @@ fn test_with_shared() {
         let eb = EntityBuilder {
             entity: 0.into(),
             entity_component_manager: &mut ecm,
-            entity_container: &mut VecEntityContainer::default(),
+            entity_container: &VecEntityContainer::default(),
         };
 
         eb.with(TestComponent);
@@ -80,7 +80,7 @@ fn test_with_shared() {
         let eb = EntityBuilder {
             entity: 1.into(),
             entity_component_manager: &mut ecm,
-            entity_container: &mut VecEntityContainer::default(),
+            entity_container: &VecEntityContainer::default(),
         };
 
         eb.with_shared::<TestComponent>(0.into());

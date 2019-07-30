@@ -6,7 +6,7 @@ struct Name { value: String }
 struct PrintSystem;
 
 impl System<VecEntityContainer> for PrintSystem {
-    fn run(&self, entities: &mut VecEntityContainer, ecm: &mut EntityComponentManager) {
+    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
         for entity in &entities.inner {
             if let Ok(comp) = ecm.borrow_component::<Name>(*entity) {
                 println!("{}", comp.value);

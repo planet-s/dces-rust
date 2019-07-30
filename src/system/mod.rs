@@ -26,7 +26,7 @@ pub trait System<T>: Any
 where
     T: EntityContainer,
 {
-    fn run(&self, entities: &mut T, ecm: &mut EntityComponentManager);
+    fn run(&self, entities: &T, ecm: &mut EntityComponentManager);
 }
 
 /// Internal wrapper for a system. Contains also filter, priority, sort and entities.
