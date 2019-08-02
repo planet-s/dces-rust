@@ -1,6 +1,6 @@
 pub use crate::{
     entity::{
-        Component, ComponentBox, Entity, EntityComponentManager, EntityStore, SharedComponentBox,
+        Component, ComponentBox, ComponentStore, Entity, EntityComponentManager, EntityStore, SharedComponentBox,
         VecEntityStore,
     },
     error::NotFound,
