@@ -43,7 +43,10 @@ pub struct SharedComponentBox {
 impl SharedComponentBox {
     /// Creates the shared component box.
     pub fn new(type_id: TypeId, source: impl Into<Entity>) -> Self {
-        SharedComponentBox { source: source.into(), type_id }
+        SharedComponentBox {
+            source: source.into(),
+            type_id,
+        }
     }
 
     /// Consumes the component box and returns the type id and the source.
@@ -70,7 +73,7 @@ impl ComponentBox {
 /// The entity builder is used to create an entity with components.
 pub struct EntityBuilder<'a, T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     /// The created entity.
     pub entity: Entity,
@@ -82,7 +85,7 @@ where
 
 impl<'a, T> EntityBuilder<'a, T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     /// Adds a component of type `C` to the entity.
     pub fn with<C: Component>(self, component: C) -> Self {
@@ -114,89 +117,182 @@ where
 
     /// Finishing the creation of the entity.
     pub fn build(self) -> Entity {
-        self.entity_component_manager.entity_container.register_entity(self.entity);
+        self.entity_component_manager
+            .entity_store
+            .register_entity(self.entity);
         self.entity
     }
 }
 
 /// The EntityComponentManager represents the main entity and component storage.
 #[derive(Default)]
-pub struct EntityComponentManager<T> where
-    T: EntityContainer {
-    /// The entities with its components.
-    pub entities: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
+pub struct EntityComponentManager<T>
+where
+    T: EntityStore,
+{
+    component_store: ComponentStore,
 
-    pub shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
-
-    entity_container: T,
+    entity_store: T,
 }
 
-impl<T> EntityComponentManager<T> where
-    T: EntityContainer {
+impl<T> EntityComponentManager<T>
+where
+    T: EntityStore,
+{
     /// Create a new entity component manager.
-    pub fn new(entity_container: T) -> Self {
+    pub fn new(entity_store: T) -> Self {
         EntityComponentManager {
-            entities: HashMap::new(),
-            shared: HashMap::new(),
-            entity_container
+            component_store: ComponentStore::default(),
+            entity_store,
         }
     }
 
+    /// Returns references to the component store and entity store.
+    pub fn stores(&self) -> (&T, &ComponentStore) {
+        (&self.entity_store, &self.component_store)
+    }
+
+    /// Returns mutable references to the component store and entity store.
+    pub fn stores_mut(&mut self) -> (&mut T, &mut ComponentStore) {
+        (&mut self.entity_store, &mut self.component_store)
+    }
+
+    /// Return a reference to the component container.
+    pub fn component_store(&self) -> &ComponentStore {
+        &self.component_store
+    }
+
+    /// Return a mutable reference to the component container.
+    pub fn component_store_mut(&mut self) -> &mut ComponentStore {
+        &mut self.component_store
+    }
+
+    /// Return a reference to the entity container.
+    pub fn entity_store(&mut self) -> &mut T {
+        &mut self.entity_store
+    }
+
     /// Return a mutable reference to the entity container.
-    pub fn entity_container(&mut self) -> &mut T {
-        &mut self.entity_container
+    pub fn entity_store_mut(&mut self) -> &mut T {
+        &mut self.entity_store
     }
 
     /// Register a new `entity`.
     pub fn register_entity(&mut self, entity: impl Into<Entity>) {
-        self.entities.insert(entity.into(), HashMap::new());
+        self.component_store
+            .components
+            .insert(entity.into(), HashMap::new());
     }
 
     /// Removes a `entity` from the manager.
     pub fn remove_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
-        self.entities.remove(&entity);
-        self.entity_container.remove_entity(entity);
+        self.component_store.components.remove(&entity);
+        self.entity_store.remove_entity(entity);
     }
 
     /// Register a `component` for the given `entity`.
     pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
-        self.entities
+        self.component_store
+            .components
             .get_mut(&entity)
             .get_or_insert(&mut HashMap::new())
             .insert(TypeId::of::<C>(), Box::new(component));
     }
 
     pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
-        if !self.shared.contains_key(&target) {
-            self.shared.insert(target, RefCell::new(HashMap::new()));
+        if !self.component_store.shared.contains_key(&target) {
+            self.component_store
+                .shared
+                .insert(target, RefCell::new(HashMap::new()));
         }
 
-        self.shared[&target]
+        self.component_store.shared[&target]
             .borrow_mut()
             .insert(TypeId::of::<C>(), source);
     }
 
-    pub fn register_shared_component_box(&mut self, target: impl Into<Entity>, source: SharedComponentBox) {
+    pub fn register_shared_component_box(
+        &mut self,
+        target: impl Into<Entity>,
+        source: SharedComponentBox,
+    ) {
         let target = target.into();
-        if !self.shared.contains_key(&target) {
-            self.shared.insert(target, RefCell::new(HashMap::new()));
+        if !self.component_store.shared.contains_key(&target) {
+            self.component_store
+                .shared
+                .insert(target, RefCell::new(HashMap::new()));
         }
 
-        self.shared[&target]
+        self.component_store.shared[&target]
             .borrow_mut()
             .insert(source.type_id, source.source);
     }
 
     /// Register a `component_box` for the given `entity`.
-    pub fn register_component_box(&mut self, entity: impl Into<Entity>, component_box: ComponentBox) {
+    pub fn register_component_box(
+        &mut self,
+        entity: impl Into<Entity>,
+        component_box: ComponentBox,
+    ) {
         let entity = entity.into();
         let (type_id, component) = component_box.consume();
 
-        self.entities
+        self.component_store
+            .components
             .get_mut(&entity)
             .get_or_insert(&mut HashMap::new())
             .insert(type_id, component);
+    }
+}
+
+/// This trait is used to define a custom store for entities.
+/// A entity container is used for entity iteration inside of the
+/// system's run methods.
+pub trait EntityStore {
+    /// Registers the give 'entity'.
+    fn register_entity(&mut self, entity: impl Into<Entity>);
+
+    /// Removes the given 'entity'.
+    fn remove_entity(&mut self, entity: impl Into<Entity>);
+}
+
+/// VecEntityStore is the default vector based implementation of an entity store.
+#[derive(Default)]
+pub struct VecEntityStore {
+    pub inner: Vec<Entity>,
+}
+
+impl EntityStore for VecEntityStore {
+    fn register_entity(&mut self, entity: impl Into<Entity>) {
+        self.inner.push(entity.into());
+    }
+
+    fn remove_entity(&mut self, entity: impl Into<Entity>) {
+        let entity = entity.into();
+        self.inner
+            .iter()
+            .position(|&n| n == entity)
+            .map(|e| self.inner.remove(e));
+    }
+}
+
+/// The `ComponentStore` stores the components of all entities. It could be used to
+/// borrow the components of the entities.
+#[derive(Default, Debug)]
+pub struct ComponentStore {
+    components: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
+    shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
+}
+
+impl ComponentStore {
+    /// Returns the number of components in the store.
+    pub fn len(&self) -> usize {
+        self.components.len()
+    }
+    /// Returns `true` if the store contains the specific entity.
+    pub fn contains_entity(&self, entity: &Entity) -> bool {
+        self.components.contains_key(entity)
     }
 
     // Search the the target entity in the entity map.
@@ -214,8 +310,8 @@ impl<T> EntityComponentManager<T> where
 
     // Returns the target entity. First search in entities map. If not found search in shared entity map.
     fn target_entity<C: Component>(&self, entity: Entity) -> Result<Entity, NotFound> {
-        if !self.entities.contains_key(&entity)
-            || !self.entities[&entity].contains_key(&TypeId::of::<C>())
+        if !self.components.contains_key(&entity)
+            || !self.components[&entity].contains_key(&TypeId::of::<C>())
         {
             return self.target_entity_from_shared::<C>(entity);
         }
@@ -230,7 +326,7 @@ impl<T> EntityComponentManager<T> where
 
         match target_entity {
             Ok(entity) => self
-                .entities
+                .components
                 .get(&entity)
                 .ok_or_else(|| NotFound::Entity(entity))
                 .and_then(|en| {
@@ -256,7 +352,7 @@ impl<T> EntityComponentManager<T> where
 
         match target_entity {
             Ok(entity) => self
-                .entities
+                .components
                 .get_mut(&entity)
                 .ok_or_else(|| NotFound::Entity(entity))
                 .and_then(|en| {
@@ -270,36 +366,5 @@ impl<T> EntityComponentManager<T> where
                 }),
             Err(_) => Result::Err(NotFound::Entity(entity)),
         }
-    }
-}
-
-/// This trait is used to define a custom container for entities.
-/// A entity container is used for entity iteration inside of the
-/// system's run methods.
-pub trait EntityContainer {
-    /// Registers the give 'entity'.
-    fn register_entity(&mut self, entity: impl Into<Entity>);
-
-    /// Removes the given 'entity'.
-    fn remove_entity(&mut self, entity: impl Into<Entity>);
-}
-
-/// VecEntityContainer is the default vector based implementation of an entity container.
-#[derive(Default)]
-pub struct VecEntityContainer {
-    pub inner: Vec<Entity>,
-}
-
-impl EntityContainer for VecEntityContainer {
-    fn register_entity(&mut self, entity: impl Into<Entity>) {
-        self.inner.push(entity.into());
-    }
-
-    fn remove_entity(&mut self, entity: impl Into<Entity>) {
-        let entity = entity.into();
-        self.inner
-            .iter()
-            .position(|&n| n == entity)
-            .map(|e| self.inner.remove(e));
     }
 }

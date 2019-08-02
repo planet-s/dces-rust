@@ -2,7 +2,7 @@ use core::cell::Cell;
 use core::ops::Drop;
 
 use crate::{
-    entity::{Entity, EntityBuilder, EntityComponentManager, EntityContainer, VecEntityContainer},
+    entity::{Entity, EntityBuilder, EntityComponentManager, EntityStore, VecEntityStore},
     system::{EntitySystemBuilder, EntitySystemManager, System},
 };
 
@@ -14,7 +14,7 @@ mod tests;
 #[derive(Default)]
 pub struct World<T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     entity_component_manager: EntityComponentManager<T>,
     entity_system_manager: EntitySystemManager<T>,
@@ -25,7 +25,7 @@ where
 
 impl<T> Drop for World<T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     fn drop(&mut self) {
         if let Some(cleanup_system) = self.entity_system_manager.borrow_cleanup_system() {
@@ -36,21 +36,21 @@ where
     }
 }
 
-unsafe impl<T> Send for World<T> where T: EntityContainer {}
+unsafe impl<T> Send for World<T> where T: EntityStore {}
 
 impl<T> World<T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     /// Creates a new world the a vector based entity container.
-    pub fn new() -> World<VecEntityContainer> {
-        World::from_container(VecEntityContainer::default())
+    pub fn new() -> World<VecEntityStore> {
+        World::from_container(VecEntityStore::default())
     }
 
     /// Creates a new world from the given container.
-    pub fn from_container(entity_container: T) -> Self {
+    pub fn from_container(entity_store: T) -> Self {
         World {
-            entity_component_manager: EntityComponentManager::new(entity_container),
+            entity_component_manager: EntityComponentManager::new(entity_store),
             entity_system_manager: EntitySystemManager::new(),
             entity_counter: 0,
             entity_system_counter: 0,
@@ -82,7 +82,8 @@ where
 
     /// Registers the cleanup system.
     pub fn register_cleanup_system(&mut self, cleanup_system: impl System<T>) {
-        self.entity_system_manager.register_cleanup_system(cleanup_system);
+        self.entity_system_manager
+            .register_cleanup_system(cleanup_system);
     }
 
     /// Creates a new entity system and returns a returns an `EntitySystemBuilder`.
@@ -113,9 +114,7 @@ where
     pub fn run(&mut self) {
         if self.first_run {
             if let Some(init_system) = self.entity_system_manager.borrow_init_system() {
-                init_system
-                    .system
-                    .run(&mut self.entity_component_manager);
+                init_system.system.run(&mut self.entity_component_manager);
             }
             self.first_run = false;
         }
