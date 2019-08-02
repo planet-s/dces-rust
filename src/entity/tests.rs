@@ -5,7 +5,7 @@ struct TestComponent;
 
 #[test]
 fn test_register_entity() {
-    let mut ecm = EntityComponentManager::new();
+    let mut ecm = EntityComponentManager::new(VecEntityContainer { inner: vec![] });
     ecm.register_entity(5);
     assert!(ecm.entities.contains_key(&5.into()));
     assert_eq!(1, ecm.entities.len());
@@ -13,7 +13,7 @@ fn test_register_entity() {
 
 #[test]
 fn test_register_component() {
-    let mut ecm = EntityComponentManager::new();
+    let mut ecm = EntityComponentManager::new(VecEntityContainer { inner: vec![] });
     ecm.register_entity(0);
     ecm.register_component(0.into(), TestComponent);
     assert!(ecm.borrow_component::<TestComponent>(0.into()) == Ok(&TestComponent))
@@ -22,7 +22,7 @@ fn test_register_component() {
 
 #[test]
 fn test_register_shared_component() {
-    let mut ecm = EntityComponentManager::new();
+    let mut ecm = EntityComponentManager::new(VecEntityContainer { inner: vec![] });
     ecm.register_entity(0);
     ecm.register_component(0.into(), TestComponent);
     ecm.register_entity(1);
@@ -34,8 +34,7 @@ fn test_register_shared_component() {
 fn test_build() {
     let eb = EntityBuilder {
         entity: 0.into(),
-        entity_component_manager: &mut EntityComponentManager::new(),
-        entity_container: &mut VecEntityContainer::default(),
+        entity_component_manager: &mut EntityComponentManager::new(VecEntityContainer { inner: vec![] })
     };
 
     assert_eq!(eb.build(), 0.into());
@@ -43,14 +42,13 @@ fn test_build() {
 
 #[test]
 fn test_with() {
-    let mut ecm = EntityComponentManager::new();
+    let mut ecm = EntityComponentManager::new(VecEntityContainer { inner: vec![] });
     ecm.register_entity(0);
 
     {
         let eb = EntityBuilder {
             entity: 0.into(),
-            entity_component_manager: &mut ecm,
-            entity_container: &mut VecEntityContainer::default(),
+            entity_component_manager: &mut ecm
         };
 
         eb.with(TestComponent);
@@ -61,14 +59,13 @@ fn test_with() {
 
 #[test]
 fn test_with_shared() {
-    let mut ecm = EntityComponentManager::new();
+    let mut ecm = EntityComponentManager::new(VecEntityContainer { inner: vec![] });
     ecm.register_entity(0);
 
     {
         let eb = EntityBuilder {
             entity: 0.into(),
-            entity_component_manager: &mut ecm,
-            entity_container: &mut VecEntityContainer::default(),
+            entity_component_manager: &mut ecm
         };
 
         eb.with(TestComponent);
@@ -79,8 +76,7 @@ fn test_with_shared() {
      {
         let eb = EntityBuilder {
             entity: 1.into(),
-            entity_component_manager: &mut ecm,
-            entity_container: &mut VecEntityContainer::default(),
+            entity_component_manager: &mut ecm
         };
 
         eb.with_shared::<TestComponent>(0.into());

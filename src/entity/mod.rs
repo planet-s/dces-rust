@@ -77,9 +77,7 @@ where
 
     /// Reference to the entity component manager, used to add components
     /// to the entity.
-    pub entity_component_manager: &'a mut EntityComponentManager,
-
-    pub entity_container: &'a mut T,
+    pub entity_component_manager: &'a mut EntityComponentManager<T>,
 }
 
 impl<'a, T> EntityBuilder<'a, T>
@@ -116,34 +114,49 @@ where
 
     /// Finishing the creation of the entity.
     pub fn build(self) -> Entity {
-        self.entity_container.register_entity(self.entity);
+        self.entity_component_manager.entity_container.register_entity(self.entity);
         self.entity
     }
 }
 
 /// The EntityComponentManager represents the main entity and component storage.
 #[derive(Default)]
-pub struct EntityComponentManager {
+pub struct EntityComponentManager<T> where
+    T: EntityContainer {
     /// The entities with its components.
     pub entities: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
 
     pub shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
+
+    entity_container: T,
 }
 
-impl EntityComponentManager {
+impl<T> EntityComponentManager<T> where
+    T: EntityContainer {
     /// Create a new entity component manager.
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new(entity_container: T) -> Self {
+        EntityComponentManager {
+            entities: HashMap::new(),
+            shared: HashMap::new(),
+            entity_container
+        }
     }
 
-    /// Register a new `entity`.>
+    /// Return a mutable reference to the entity container.
+    pub fn entity_container(&mut self) -> &mut T {
+        &mut self.entity_container
+    }
+
+    /// Register a new `entity`.
     pub fn register_entity(&mut self, entity: impl Into<Entity>) {
         self.entities.insert(entity.into(), HashMap::new());
     }
 
     /// Removes a `entity` from the manager.
     pub fn remove_entity(&mut self, entity: impl Into<Entity>) {
-        self.entities.remove(&entity.into());
+        let entity = entity.into();
+        self.entities.remove(&entity);
+        self.entity_container.remove_entity(entity);
     }
 
     /// Register a `component` for the given `entity`.

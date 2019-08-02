@@ -7,8 +7,8 @@ struct Counter(u32);
 
 struct UpdateSystem;
 impl System<VecEntityContainer> for UpdateSystem {
-    fn run(&self, entities: &mut VecEntityContainer, ecm: &mut EntityComponentManager) {
-        for entity in &entities.inner {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityContainer>) {
+        for entity in &ecm.entity_container().inner.clone() {
             if let Ok(comp) = ecm.borrow_mut_component::<Counter>(*entity) {
                 comp.0 += 1;
             }
@@ -18,8 +18,8 @@ impl System<VecEntityContainer> for UpdateSystem {
 
 struct TestUpdateSystem(u32);
 impl System<VecEntityContainer> for TestUpdateSystem {
-    fn run(&self, entities: &mut VecEntityContainer, ecm: &mut EntityComponentManager) {
-        for entity in &entities.inner {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityContainer>) {
+        for entity in &ecm.entity_container().inner.clone() {
             if let Ok(comp) = ecm.borrow_mut_component::<Counter>(*entity) {
                 assert_eq!(comp.0, self.0);
             }
