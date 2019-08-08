@@ -18,7 +18,6 @@ where
 {
     entity_component_manager: EntityComponentManager<T>,
     entity_system_manager: EntitySystemManager<T>,
-    entity_counter: u32,
     entity_system_counter: u32,
     first_run: bool,
 }
@@ -52,7 +51,6 @@ where
         World {
             entity_component_manager: EntityComponentManager::new(entity_store),
             entity_system_manager: EntitySystemManager::new(),
-            entity_counter: 0,
             entity_system_counter: 0,
             first_run: true,
         }
@@ -60,14 +58,7 @@ where
 
     /// Creates a new entity and returns a returns an `EntityBuilder`.
     pub fn create_entity(&mut self) -> EntityBuilder<'_, T> {
-        let entity: Entity = self.entity_counter.into();
-        self.entity_component_manager.register_entity(entity);
-        self.entity_counter += 1;
-
-        EntityBuilder {
-            entity,
-            entity_component_manager: &mut self.entity_component_manager,
-        }
+        self.entity_component_manager.create_entity()
     }
 
     /// Deletes the given `entity`.

@@ -177,6 +177,16 @@ where
         &mut self.entity_store
     }
 
+    /// Creates a new entity and returns a returns an `EntityBuilder`.
+    pub fn create_entity(&mut self) -> EntityBuilder<'_, T> {
+        let entity: Entity = self.component_store.create_entity();
+
+        EntityBuilder {
+            entity,
+            entity_component_manager: self,
+        }
+    }
+
     /// Register a new `entity`.
     pub fn register_entity(&mut self, entity: impl Into<Entity>) {
         self.component_store
@@ -193,40 +203,23 @@ where
 
     /// Register a `component` for the given `entity`.
     pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
-        self.component_store
-            .components
-            .get_mut(&entity)
-            .get_or_insert(&mut HashMap::new())
-            .insert(TypeId::of::<C>(), Box::new(component));
+        self.component_store.register_component(entity, component);
     }
 
+    /// Registers a sharing of the given component between the given entities.
     pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
-        if !self.component_store.shared.contains_key(&target) {
-            self.component_store
-                .shared
-                .insert(target, RefCell::new(HashMap::new()));
-        }
-
-        self.component_store.shared[&target]
-            .borrow_mut()
-            .insert(TypeId::of::<C>(), source);
+        self.component_store
+            .register_shared_component::<C>(target, source);
     }
 
+    /// Registers a sharing of the given component between the given entities.
     pub fn register_shared_component_box(
         &mut self,
         target: impl Into<Entity>,
         source: SharedComponentBox,
     ) {
-        let target = target.into();
-        if !self.component_store.shared.contains_key(&target) {
-            self.component_store
-                .shared
-                .insert(target, RefCell::new(HashMap::new()));
-        }
-
-        self.component_store.shared[&target]
-            .borrow_mut()
-            .insert(source.type_id, source.source);
+        self.component_store
+            .register_shared_component_box(target, source);
     }
 
     /// Register a `component_box` for the given `entity`.
@@ -235,14 +228,8 @@ where
         entity: impl Into<Entity>,
         component_box: ComponentBox,
     ) {
-        let entity = entity.into();
-        let (type_id, component) = component_box.consume();
-
         self.component_store
-            .components
-            .get_mut(&entity)
-            .get_or_insert(&mut HashMap::new())
-            .insert(type_id, component);
+            .register_component_box(entity, component_box);
     }
 }
 
@@ -283,13 +270,72 @@ impl EntityStore for VecEntityStore {
 pub struct ComponentStore {
     components: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
     shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
+    entity_counter: u32,
 }
 
 impl ComponentStore {
+    pub fn create_entity(&mut self) -> Entity {
+        let entity: Entity = self.entity_counter.into();
+        self.components.insert(entity, HashMap::new());
+        self.entity_counter += 1;
+        entity
+    }
+
+    /// Register a `component` for the given `entity`.
+    pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
+        self.components
+            .get_mut(&entity)
+            .get_or_insert(&mut HashMap::new())
+            .insert(TypeId::of::<C>(), Box::new(component));
+    }
+
+    /// Registers a sharing of the given component between the given entities.
+    pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
+        if !self.shared.contains_key(&target) {
+            self.shared.insert(target, RefCell::new(HashMap::new()));
+        }
+
+        self.shared[&target]
+            .borrow_mut()
+            .insert(TypeId::of::<C>(), source);
+    }
+
+    /// Registers a sharing of the given component between the given entities.
+    pub fn register_shared_component_box(
+        &mut self,
+        target: impl Into<Entity>,
+        source: SharedComponentBox,
+    ) {
+        let target = target.into();
+        if !self.shared.contains_key(&target) {
+            self.shared.insert(target, RefCell::new(HashMap::new()));
+        }
+
+        self.shared[&target]
+            .borrow_mut()
+            .insert(source.type_id, source.source);
+    }
+
+    /// Register a `component_box` for the given `entity`.
+    pub fn register_component_box(
+        &mut self,
+        entity: impl Into<Entity>,
+        component_box: ComponentBox,
+    ) {
+        let entity = entity.into();
+        let (type_id, component) = component_box.consume();
+
+        self.components
+            .get_mut(&entity)
+            .get_or_insert(&mut HashMap::new())
+            .insert(type_id, component);
+    }
+
     /// Returns the number of components in the store.
     pub fn len(&self) -> usize {
         self.components.len()
     }
+
     /// Returns `true` if the store contains the specific entity.
     pub fn contains_entity(&self, entity: &Entity) -> bool {
         self.components.contains_key(entity)
