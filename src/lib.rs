@@ -29,7 +29,7 @@
 //! impl System<VecEntityStore> for PrintSystem {
 //!     fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
 //!         let (e_store, c_store) = ecm.stores();
-//! 
+//!
 //!         for entity in &e_store.inner {
 //!             if let Ok(comp) = c_store.borrow_component::<Name>(*entity) {
 //!                 println!("{}", comp.value);
