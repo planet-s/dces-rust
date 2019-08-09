@@ -1,4 +1,4 @@
-image: 'rust:latest'
+image: "redoxos/redoxer"
 
 variables:
     CARGO_HOME: $CI_PROJECT_DIR/cargo
