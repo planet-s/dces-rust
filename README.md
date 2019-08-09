@@ -6,7 +6,7 @@ The goal of DCES is a lightweight ECS library with zero dependencies used by UI 
 
 [![Build status](https://gitlab.redox-os.org/redox-os/dces-rust/badges/master/build.svg)](https://gitlab.redox-os.org/redox-os/dces-rust/pipelines)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![crates.io](https://img.shields.io/badge/crates.io-v0.1.6-orange.svg)](https://crates.io/crates/dces)
+[![crates.io](https://img.shields.io/badge/crates.io-v0.2-orange.svg)](https://crates.io/crates/dces)
 [![docs.rs](https://docs.rs/dces/badge.svg)](https://docs.rs/dces)
 
 ## Features:
@@ -24,7 +24,7 @@ To include DCES in your project, just add the dependency
 line to your `Cargo.toml` file:
 
 ```text
-dces = "0.1.6"
+dces = "0.2"
 ```
 
 To use DCES master, just add the dependency
@@ -44,8 +44,8 @@ struct Name { value: String }
 
 struct PrintSystem;
 
-impl System<VecEntityContainer> for PrintSystem {
-    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
+impl System<VecEntityStore> for PrintSystem {
+    fn run(&self, entities: &VecEntityStore, ecm: &mut EntityComponentManager) {
         for entity in &entities.inner {
             if let Ok(comp) = ecm.borrow_component::<Name>(*entity) {
                 println!("{}", comp.value);
@@ -55,7 +55,7 @@ impl System<VecEntityContainer> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityContainer>::new();
+    let mut world = World::<VecEntityStore>::new();
 
     world.create_entity().with(Name { value: String::from("DCES") }).build();
     world.create_system(PrintSystem).build();

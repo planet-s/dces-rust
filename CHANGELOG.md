@@ -1,6 +1,7 @@
-# 0.1.7
+# 0.2
 
-* Support for no_std feature
+* Updated the api of EntityComponentManager
+* Introduced ComponentStore
 
 # 0.1.3 / 0.1.4 / 0.1.5 / 0.1.6 Init and cleanup system
 

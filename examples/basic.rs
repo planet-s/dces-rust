@@ -13,10 +13,12 @@ struct Name(String);
 struct Depth(u32);
 
 pub struct SizeSystem;
-impl System<VecEntityContainer> for SizeSystem {
-    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
-        for entity in &entities.inner {
-            if let Ok(comp) = ecm.borrow_mut_component::<Size>(*entity) {
+impl System<VecEntityStore> for SizeSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+        let (e_store, c_store) = ecm.stores_mut();
+
+        for entity in &e_store.inner {
+            if let Ok(comp) = c_store.borrow_mut_component::<Size>(*entity) {
                 comp.width += 1;
                 comp.height += 1;
             }
@@ -25,11 +27,13 @@ impl System<VecEntityContainer> for SizeSystem {
 }
 
 pub struct PrintSystem;
-impl System<VecEntityContainer> for PrintSystem {
-    fn run(&self, entities: &VecEntityContainer, ecm: &mut EntityComponentManager) {
-        for entity in &entities.inner {
-            if let Ok(name) = ecm.borrow_component::<Name>(*entity) {
-                if let Ok(size) = ecm.borrow_component::<Size>(*entity) {
+impl System<VecEntityStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+        let (e_store, c_store) = ecm.stores_mut();
+
+        for entity in &e_store.inner {
+            if let Ok(name) = c_store.borrow_component::<Name>(*entity) {
+                if let Ok(size) = c_store.borrow_component::<Size>(*entity) {
                     println!("{} width: {}; height: {}", name.0, size.width, size.height);
                 }
             }
@@ -38,7 +42,7 @@ impl System<VecEntityContainer> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityContainer>::new();
+    let mut world = World::<VecEntityStore>::new();
 
     world
         .create_entity()

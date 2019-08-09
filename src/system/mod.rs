@@ -1,7 +1,4 @@
-use core::{
-    any::Any,
-    cell::Cell,
-};
+use core::{any::Any, cell::Cell};
 
 #[cfg(not(feature = "no_std"))]
 use std::collections::{BTreeMap, HashMap};
@@ -10,7 +7,7 @@ use std::collections::{BTreeMap, HashMap};
 use alloc::collections::{BTreeMap, HashMap};
 
 use crate::{
-    entity::{EntityComponentManager, EntityContainer},
+    entity::{EntityComponentManager, EntityStore},
     error::NotFound,
 };
 
@@ -24,9 +21,9 @@ pub type Priority = i32;
 /// read and write to the components.
 pub trait System<T>: Any
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
-    fn run(&self, entities: &T, ecm: &mut EntityComponentManager);
+    fn run(&self, ecm: &mut EntityComponentManager<T>);
 }
 
 /// Internal wrapper for a system. Contains also filter, priority, sort and entities.
@@ -50,7 +47,7 @@ impl<T> EntitySystem<T> {
 /// The entity system builder is used to create an entity system.
 pub struct EntitySystemBuilder<'a, T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     /// Id of the entity system.
     pub entity_system_id: u32,
@@ -65,7 +62,7 @@ where
 
 impl<'a, T> EntitySystemBuilder<'a, T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     /// Add a `priority` to the system. Default priority is 0.
     pub fn with_priority(self, priority: Priority) -> Self {
@@ -85,7 +82,7 @@ where
 #[derive(Default)]
 pub struct EntitySystemManager<T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     // The entity systems.
     entity_systems: HashMap<u32, EntitySystem<T>>,
@@ -102,7 +99,7 @@ where
 
 impl<T> EntitySystemManager<T>
 where
-    T: EntityContainer,
+    T: EntityStore,
 {
     /// Creates a new entity system manager with default values.
     pub fn new() -> Self {
@@ -160,16 +157,12 @@ where
     }
 
     /// Returns a reference of the init entity system. If the init entity system does not exists `None` will be returned.
-    pub fn borrow_init_system(
-        &self,
-    ) -> &Option<EntitySystem<T>> {
+    pub fn borrow_init_system(&self) -> &Option<EntitySystem<T>> {
         &self.init_system
     }
 
     /// Returns a reference of the cleanup entity system. If the init entity system does not exists `None` will be returned.
-    pub fn borrow_cleanup_system(
-        &self,
-    ) -> &Option<EntitySystem<T>> {
+    pub fn borrow_cleanup_system(&self) -> &Option<EntitySystem<T>> {
         &self.cleanup_system
     }
 }

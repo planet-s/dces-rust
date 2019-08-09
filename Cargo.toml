@@ -1,6 +1,6 @@
 [package]
 name = "dces"
-version = "0.1.7"
+version = "0.2.0"
 authors = ["Florian Blasius <flovanpt@posteo.de>"]
 description = "DCES entity component system"
 documentation = "https://docs.rs/dces"

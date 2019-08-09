@@ -12,7 +12,7 @@ pub enum NotFound {
     /// EntitySystem could not be found
     EntitySystem(u32),
     /// Unknown error
-    Unknown(String)
+    Unknown(String),
 }
 
 impl Default for NotFound {
