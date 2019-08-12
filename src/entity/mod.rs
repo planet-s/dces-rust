@@ -295,6 +295,11 @@ impl ComponentStore {
             self.shared.insert(target, RefCell::new(HashMap::new()));
         }
 
+        // Removes unshared component of entity.
+        if let Some(comp) = self.components.get_mut(&target){
+             comp.remove(&TypeId::of::<C>());
+        }
+
         self.shared[&target]
             .borrow_mut()
             .insert(TypeId::of::<C>(), source);
@@ -309,6 +314,11 @@ impl ComponentStore {
         let target = target.into();
         if !self.shared.contains_key(&target) {
             self.shared.insert(target, RefCell::new(HashMap::new()));
+        }
+
+        // Removes unshared component of entity.
+        if let Some(comp) = self.components.get_mut(&target){
+             comp.remove(&source.type_id);
         }
 
         self.shared[&target]
