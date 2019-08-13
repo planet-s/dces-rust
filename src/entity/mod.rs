@@ -351,15 +351,13 @@ impl ComponentStore {
         self.components.contains_key(entity)
     }
 
-    /// Returns `true` if the target component of the given entity is shared otherwise `false`.
-    pub fn is_shared<C: Component>(&self, entity: Entity) -> Result<bool, NotFound> {
-        self.shared.get(&entity).ok_or_else(|| NotFound::Entity(entity))
-            .and_then(|en| {
-                en.borrow()
-                    .get(&TypeId::of::<C>())
-                    .map(|_| true)
-                    .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
-            })
+    /// Returns `true` if entity is the origin of the requested component `false`.
+    pub fn is_origin<C: Component>(&self, entity: Entity) -> bool {
+        if let Some(components) = self.components.get(&entity) {
+            return components.contains_key(&TypeId::of::<C>())
+        }
+       
+       false
     }
 
     // Search the the target entity in the entity map.
