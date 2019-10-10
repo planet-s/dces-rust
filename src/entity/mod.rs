@@ -386,7 +386,7 @@ impl ComponentStore {
 
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_component<C: Component + Default>(&self, entity: Entity) -> Result<&C, NotFound> {
+    pub fn borrow_component<C: Component>(&self, entity: Entity) -> Result<&C, NotFound> {
         let target_entity = self.target_entity::<C>(entity);
 
         match target_entity {
@@ -409,7 +409,7 @@ impl ComponentStore {
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_mut_component<C: Component + Default>(
+    pub fn borrow_mut_component<C: Component>(
         &mut self,
         entity: Entity,
     ) -> Result<&mut C, NotFound> {
