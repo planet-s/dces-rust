@@ -133,6 +133,8 @@ where
     component_store: ComponentStore,
 
     entity_store: T,
+
+    entity_counter: u32,
 }
 
 impl<T> EntityComponentManager<T>
@@ -142,6 +144,7 @@ where
     /// Create a new entity component manager.
     pub fn new(entity_store: T) -> Self {
         EntityComponentManager {
+            entity_counter: 0,
             component_store: ComponentStore::default(),
             entity_store,
         }
@@ -179,7 +182,12 @@ where
 
     /// Creates a new entity and returns a returns an `EntityBuilder`.
     pub fn create_entity(&mut self) -> EntityBuilder<'_, T> {
-        let entity: Entity = self.component_store.create_entity();
+        let entity: Entity = self.entity_counter.into();
+
+        self.component_store
+            .components
+            .insert(entity, HashMap::new());
+        self.entity_counter += 1;
 
         EntityBuilder {
             entity,
@@ -270,17 +278,9 @@ impl EntityStore for VecEntityStore {
 pub struct ComponentStore {
     components: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
     shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
-    entity_counter: u32,
 }
 
 impl ComponentStore {
-    pub fn create_entity(&mut self) -> Entity {
-        let entity: Entity = self.entity_counter.into();
-        self.components.insert(entity, HashMap::new());
-        self.entity_counter += 1;
-        entity
-    }
-
     /// Register a `component` for the given `entity`.
     pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
         self.components
@@ -296,8 +296,8 @@ impl ComponentStore {
         }
 
         // Removes unshared component of entity.
-        if let Some(comp) = self.components.get_mut(&target){
-             comp.remove(&TypeId::of::<C>());
+        if let Some(comp) = self.components.get_mut(&target) {
+            comp.remove(&TypeId::of::<C>());
         }
 
         self.shared[&target]
@@ -317,8 +317,8 @@ impl ComponentStore {
         }
 
         // Removes unshared component of entity.
-        if let Some(comp) = self.components.get_mut(&target){
-             comp.remove(&source.type_id);
+        if let Some(comp) = self.components.get_mut(&target) {
+            comp.remove(&source.type_id);
         }
 
         self.shared[&target]
@@ -354,10 +354,10 @@ impl ComponentStore {
     /// Returns `true` if entity is the origin of the requested component `false`.
     pub fn is_origin<C: Component>(&self, entity: Entity) -> bool {
         if let Some(components) = self.components.get(&entity) {
-            return components.contains_key(&TypeId::of::<C>())
+            return components.contains_key(&TypeId::of::<C>());
         }
-       
-       false
+
+        false
     }
 
     // Search the the target entity in the entity map.
