@@ -241,3 +241,139 @@ impl TypeComponentStore {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::any::TypeId;
+
+    #[test]
+    fn builder_with() {
+        let builder = TypeComponentBuilder::new();
+        let component = String::from("Test");
+        let (map, _) = builder.with(component).build();
+
+        assert!(map.contains_key(&TypeId::of::<String>()));
+    }
+
+    #[test]
+    fn builder_with_shared() {
+        let builder = TypeComponentBuilder::new();
+        let source = Entity::from(1);
+        let (_, map) = builder.with_shared::<String>(source).build();
+
+        assert!(map.contains_key(&TypeId::of::<String>()));
+        assert_eq!(*map.get(&TypeId::of::<String>()).unwrap(), source);
+    }
+
+    #[test]
+    fn builder_with_shared_box() {
+        let builder = TypeComponentBuilder::new();
+        let source = Entity::from(1);
+        let (_, map) = builder
+            .with_shared_box(SharedComponentBox::new(TypeId::of::<String>(), source))
+            .build();
+
+        assert!(map.contains_key(&TypeId::of::<String>()));
+    }
+
+    #[test]
+    fn builder_with_box() {
+        let builder = TypeComponentBuilder::new();
+        let component = String::from("Test");
+        let (map, _) = builder.with_box(ComponentBox::new(component)).build();
+
+        assert!(map.contains_key(&TypeId::of::<String>()));
+    }
+
+    #[test]
+    fn register_entity() {
+        let mut store = TypeComponentStore::default();
+        let entity = Entity::from(1);
+        store.register_entity(entity);
+
+        assert!(store.contains_entity(&entity));
+    }
+
+    #[test]
+    fn remove_entity() {
+        let mut store = TypeComponentStore::default();
+        let entity = Entity::from(1);
+        store.register_entity(entity);
+        store.remove_entity(entity);
+
+        assert!(!store.contains_entity(&entity));
+    }
+
+    #[test]
+    fn register_component() {
+        let mut store = TypeComponentStore::default();
+        let entity = Entity::from(1);
+        let component = String::from("Test");
+
+        store.register_entity(entity);
+        store.register_component(entity, component);
+
+        assert!(store.borrow_component::<String>(entity).is_ok());
+    }
+
+    #[test]
+    fn len() {
+        let mut store = TypeComponentStore::default();
+        let entity = Entity::from(1);
+
+        store.register_entity(entity);
+        store.register_component(entity, String::from("Test"));
+        store.register_component(entity, 5 as f64);
+
+        assert_eq!(store.len(), 1);
+    }
+
+    #[test]
+    fn register_shared_component() {
+        let mut store = TypeComponentStore::default();
+        let entity = Entity::from(1);
+        let target = Entity::from(2);
+        let component = String::from("Test");
+
+        store.register_entity(entity);
+        store.register_component(entity, component);
+        store.register_shared_component::<String>(target, entity);
+
+        assert!(store.borrow_component::<String>(entity).is_ok());
+        assert!(store.borrow_component::<String>(target).is_ok());
+        assert!(store.is_origin::<String>(entity));
+        assert!(!store.is_origin::<String>(target));
+    }
+
+    #[test]
+    fn register_component_box() {
+        let mut store = TypeComponentStore::default();
+        let entity = Entity::from(1);
+        let component = String::from("Test");
+
+        store.register_entity(entity);
+        store.register_component_box(entity, ComponentBox::new(component));
+
+        assert!(store.borrow_component::<String>(entity).is_ok());
+    }
+
+    #[test]
+    fn register_shared_component_box() {
+        let mut store = TypeComponentStore::default();
+        let entity = Entity::from(1);
+        let target = Entity::from(2);
+        let component = String::from("Test");
+
+        store.register_entity(entity);
+        store.register_component(entity, component);
+        store.register_shared_component_box(
+            target,
+            SharedComponentBox::new(TypeId::of::<String>(), entity),
+        );
+        assert!(store.borrow_component::<String>(entity).is_ok());
+        assert!(store.borrow_component::<String>(target).is_ok());
+        assert!(store.is_origin::<String>(entity));
+        assert!(!store.is_origin::<String>(target));
+    }
+}
