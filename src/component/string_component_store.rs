@@ -18,13 +18,13 @@ impl StringComponentBuilder {
         Self::default()
     }
     /// Adds a component of type `C` to the entity.
-    pub fn with<C: Component>(mut self, key: impl Into<String>, component: C) -> Self {
+    pub fn with<C: Component>(mut self, key: &str, component: C) -> Self {
         self.components.insert(key.into(), Box::new(component));
         self
     }
 
     /// Adds an entity as `source` for a shared component of type `C`.
-    pub fn with_shared<C: Component>(mut self, key: impl Into<String>, source: Entity) -> Self {
+    pub fn with_shared<C: Component>(mut self, key: &str, source: Entity) -> Self {
         self.shared.insert(key.into(), source);
         self
     }
@@ -57,7 +57,9 @@ impl ComponentStore for StringComponentStore {
     }
 
     fn register_entity(&mut self, entity: impl Into<Entity>) {
-        self.components.insert(entity.into(), HashMap::new());
+        let entity = entity.into();
+        self.components.insert(entity, HashMap::new());
+        self.shared.insert(entity, HashMap::new());
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {
@@ -151,10 +153,9 @@ impl StringComponentStore {
     pub fn borrow_component<C: Component>(
         &self,
         entity: Entity,
-        key: impl Into<String>,
+        key: &str,
     ) -> Result<&C, NotFound> {
-        let key = key.into();
-        let target_entity = self.target_entity(entity, key.clone());
+        let target_entity = self.target_entity(entity, key);
 
         match target_entity {
             Ok(entity) => self
@@ -162,13 +163,13 @@ impl StringComponentStore {
                 .get(&entity)
                 .ok_or_else(|| NotFound::Entity(entity))
                 .and_then(|en| {
-                    en.get(&key)
+                    en.get(key)
                         .map(|component| {
                             component.downcast_ref().expect(
                                 "StringComponentStore.borrow_component: internal downcast error",
                             )
                         })
-                        .ok_or_else(|| NotFound::ComponentKey(key))
+                        .ok_or_else(|| NotFound::ComponentKey(key.into()))
                 }),
             Err(_) => Result::Err(NotFound::Entity(entity)),
         }
@@ -176,13 +177,12 @@ impl StringComponentStore {
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_mut_component<C: Component>(
+    pub fn borrow_mut_component<C: Component, K>(
         &mut self,
         entity: Entity,
-        key: impl Into<String>,
+        key: &str,
     ) -> Result<&mut C, NotFound> {
-        let key = key.into();
-        let target_entity = self.target_entity(entity, key.clone());
+        let target_entity = self.target_entity(entity, key);
 
         match target_entity {
             Ok(entity) => self
@@ -190,13 +190,13 @@ impl StringComponentStore {
                 .get_mut(&entity)
                 .ok_or_else(|| NotFound::Entity(entity))
                 .and_then(|en| {
-                    en.get_mut(&key)
+                    en.get_mut(key)
                         .map(|component| {
                             component.downcast_mut().expect(
                             "StringComponentStore.borrow_mut_component: internal downcast error",
                         )
                         })
-                        .ok_or_else(|| NotFound::ComponentKey(key))
+                        .ok_or_else(|| NotFound::ComponentKey(key.into()))
                 }),
             Err(_) => Result::Err(NotFound::Entity(entity)),
         }

@@ -48,5 +48,16 @@
                 "rust"
             ]
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug string key",
+            "program": "${workspaceFolder}/target/debug/examples/string_key",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build",
+            "sourceLanguages": [
+                "rust"
+            ]
+        },
     ]
 }
