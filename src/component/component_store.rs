@@ -2,20 +2,17 @@ use core::any::{Any, TypeId};
 
 use std::collections::HashMap;
 
-use super::{
-    Component, ComponentBox, ComponentStore, Entity, EntityStore,
-    SharedComponentBox,
-};
+use super::{Component, ComponentBox, ComponentStore, Entity, SharedComponentBox};
 use crate::error::NotFound;
 
-/// The `StringComponentBuilder` is used to build a set of type key based components.
+/// The `TypeComponentBuilder` is used to build a set of type key based components.
 #[derive(Default)]
-pub struct ComponentBuilder {
+pub struct TypeComponentBuilder {
     components: HashMap<TypeId, Box<dyn Any>>,
     shared: HashMap<TypeId, Entity>,
 }
 
-impl ComponentBuilder {
+impl TypeComponentBuilder {
     /// Creates an new builder with default values.
     pub fn new() -> Self {
         Self::default()
@@ -53,60 +50,6 @@ impl ComponentBuilder {
     }
 }
 
-/// The type key based entity builder is used to create an entity with components.
-pub struct TypeEntityBuilder<'a, E>
-where
-    E: EntityStore,
-{
-    /// The created entity.
-    pub entity: Entity,
-
-    /// Reference to the component store.
-    pub component_store: &'a mut TypeComponentStore,
-
-    /// Reference to the entity store.
-    pub entity_store: &'a mut E,
-}
-
-impl<'a, E> TypeEntityBuilder<'a, E>
-where
-    E: EntityStore,
-{
-    /// Adds a component of type `C` to the entity.
-    pub fn with<C: Component>(self, component: C) -> Self {
-        self.component_store
-            .register_component(self.entity, component);
-        self
-    }
-
-    /// Adds an entity as `source` for a shared component of type `C`.
-    pub fn with_shared<C: Component>(self, source: Entity) -> Self {
-        self.component_store
-            .register_shared_component::<C>(self.entity, source);
-        self
-    }
-
-    /// Adds an entity as `source` for a shared component box.
-    pub fn with_shared_box(self, source: SharedComponentBox) -> Self {
-        self.component_store
-            .register_shared_component_box(self.entity, source);
-        self
-    }
-
-    /// Adds a component box to the entity.
-    pub fn with_box(self, component_box: ComponentBox) -> Self {
-        self.component_store
-            .register_component_box(self.entity, component_box);
-        self
-    }
-
-    /// Finishing the creation of the entity.
-    pub fn build(self) -> Entity {
-        self.entity_store.register_entity(self.entity);
-        self.entity
-    }
-}
-
 /// The `TypeComponentStore` stores the components of all entities. It could be used to
 /// borrow the components of the entities.
 #[derive(Default, Debug)]
@@ -131,12 +74,12 @@ impl ComponentStore for TypeComponentStore {
     fn register_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
         if !self.components.contains_key(&entity) {
-             self.components.insert(entity.into(), HashMap::new());
+            self.components.insert(entity.into(), HashMap::new());
         }
 
         if !self.shared.contains_key(&entity) {
-             self.shared.insert(entity.into(), HashMap::new());
-        }      
+            self.shared.insert(entity.into(), HashMap::new());
+        }
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {

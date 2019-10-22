@@ -40,14 +40,18 @@ dces = { git = https://gitlab.redox-os.org/redox-os/dces-rust.git }
 use dces::prelude::*;
 
 #[derive(Default)]
-struct Name { value: String }
+struct Name {
+    value: String,
+}
 
 struct PrintSystem;
 
-impl System<VecEntityStore, TypeComponentStore> for PrintSystem {
-    fn run(&self, entities: &VecEntityStore, ecm: &mut EntityComponentManager) {
-        for entity in &entities.inner {
-            if let Ok(comp) = ecm.borrow_component::<Name>(*entity) {
+impl System<EntityStore, ComponentStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
+        let (e_store, c_store) = ecm.stores();
+
+        for entity in &e_store.inner {
+            if let Ok(comp) = c_store.borrow_component::<Name>(*entity) {
                 println!("{}", comp.value);
             }
         }
@@ -55,11 +59,20 @@ impl System<VecEntityStore, TypeComponentStore> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityStore, TypeComponentStore>::new();
+    let mut world = World::<EntityStore, ComponentStore>::new();
 
-    world.create_entity().with(Name { value: String::from("DCES") }).build();
+    world
+        .create_entity()
+        .components(
+            ComponentBuilder::new()
+                .with(Name {
+                    value: String::from("DCES"),
+                })
+                .build(),
+        )
+        .build();
+
     world.create_system(PrintSystem).build();
-
     world.run();
 }
 ```

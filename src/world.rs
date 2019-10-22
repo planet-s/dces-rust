@@ -129,8 +129,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::{Entity, VecEntityStore};
     use crate::component::TypeComponentStore;
+    use crate::entity::{Entity, VecEntityStore};
 
     #[derive(Default)]
     struct TestSystem;

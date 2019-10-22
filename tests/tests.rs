@@ -4,8 +4,8 @@ use dces::prelude::*;
 struct Counter(u32);
 
 struct UpdateSystem;
-impl System<VecEntityStore, TypeComponentStore> for UpdateSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {
+impl System<EntityStore, ComponentStore> for UpdateSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
@@ -17,8 +17,8 @@ impl System<VecEntityStore, TypeComponentStore> for UpdateSystem {
 }
 
 struct TestUpdateSystem(u32);
-impl System<VecEntityStore, TypeComponentStore> for TestUpdateSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {
+impl System<EntityStore, ComponentStore> for TestUpdateSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
@@ -31,7 +31,7 @@ impl System<VecEntityStore, TypeComponentStore> for TestUpdateSystem {
 
 #[test]
 fn test_update() {
-    let mut world = World::<VecEntityStore, TypeComponentStore>::new();
+    let mut world = World::<EntityStore, ComponentStore>::new();
 
     world
         .create_entity()

@@ -6,11 +6,7 @@ use std::collections::{BTreeMap, HashMap};
 #[cfg(feature = "no_std")]
 use alloc::collections::{BTreeMap, HashMap};
 
-use crate::{
-    entity::*,
-    component::*,
-    error::NotFound,
-};
+use crate::{component::*, entity::*, error::NotFound};
 
 /// The run order of a system. The systems will be executed by priority from small to great.
 pub type Priority = i32;
@@ -19,7 +15,8 @@ pub type Priority = i32;
 /// read and write to the components.
 pub trait System<E, C>: Any
 where
-    E: EntityStore, C: ComponentStore
+    E: EntityStore,
+    C: ComponentStore,
 {
     fn run(&self, ecm: &mut EntityComponentManager<E, C>);
 }
@@ -45,7 +42,8 @@ impl<E, C> EntitySystem<E, C> {
 /// The system store builder is used to create a system.
 pub struct SystemStoreBuilder<'a, E, C>
 where
-    E: EntityStore, C: ComponentStore
+    E: EntityStore,
+    C: ComponentStore,
 {
     /// Id of the entity system.
     pub entity_system_id: u32,
@@ -60,7 +58,8 @@ where
 
 impl<'a, E, C> SystemStoreBuilder<'a, E, C>
 where
-    E: EntityStore, C: ComponentStore
+    E: EntityStore,
+    C: ComponentStore,
 {
     /// Add a `priority` to the system. Default priority is 0.
     pub fn with_priority(self, priority: Priority) -> Self {
@@ -80,7 +79,8 @@ where
 #[derive(Default)]
 pub struct SystemStore<E, C>
 where
-    E: EntityStore, C: ComponentStore
+    E: EntityStore,
+    C: ComponentStore,
 {
     // The entity systems.
     entity_systems: HashMap<u32, EntitySystem<E, C>>,
@@ -97,7 +97,8 @@ where
 
 impl<E, C> SystemStore<E, C>
 where
-    E: EntityStore, C: ComponentStore
+    E: EntityStore,
+    C: ComponentStore,
 {
     /// Creates a new system store with default values.
     pub fn new() -> Self {
@@ -168,8 +169,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::VecEntityStore;
     use crate::component::TypeComponentStore;
+    use crate::entity::VecEntityStore;
 
     struct TestSystem;
 

@@ -1,5 +1,3 @@
-
-
 /// Represents an entity.
 #[derive(Copy, Clone, PartialEq, Hash, Eq, Debug, Ord, PartialOrd, Default)]
 pub struct Entity(pub u32);

@@ -5,11 +5,11 @@ use alloc::collections::{BTreeMap, HashMap};
 
 use crate::entity::*;
 
-pub use self::string_component_store::*;
 pub use self::component_store::*;
+pub use self::string_component_store::*;
 
-mod string_component_store;
 mod component_store;
+mod string_component_store;
 
 #[cfg(test)]
 mod tests;
@@ -152,7 +152,7 @@ where
 
     /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
     pub fn create_entity(&mut self) -> EntityBuilder<'_, E, C> {
-        let entity: Entity = self.entity_counter.into();  
+        let entity: Entity = self.entity_counter.into();
         self.entity_counter += 1;
 
         EntityBuilder {

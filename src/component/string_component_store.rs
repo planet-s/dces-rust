@@ -1,4 +1,4 @@
-use core::{any::Any, cell::RefCell};
+use core::any::Any;
 
 use std::collections::HashMap;
 
@@ -40,17 +40,20 @@ impl StringComponentBuilder {
 #[derive(Default, Debug)]
 pub struct StringComponentStore {
     components: HashMap<Entity, HashMap<String, Box<dyn Any>>>,
-    shared: HashMap<Entity, RefCell<HashMap<String, Entity>>>,
+    shared: HashMap<Entity, HashMap<String, Entity>>,
 }
 
 impl ComponentStore for StringComponentStore {
-    type Components = (
-        HashMap<String, Box<dyn Any>>,
-        RefCell<HashMap<String, Entity>>,
-    );
+    type Components = (HashMap<String, Box<dyn Any>>, HashMap<String, Entity>);
 
-    fn append(&mut self, _entity: Entity, _components: Self::Components) {
-        // todo
+    fn append(&mut self, entity: Entity, components: Self::Components) {
+        self.register_entity(entity);
+        for (key, value) in components.0 {
+            self.components.get_mut(&entity).unwrap().insert(key, value);
+        }
+        for (key, value) in components.1 {
+            self.shared.get_mut(&entity).unwrap().insert(key, value);
+        }
     }
 
     fn register_entity(&mut self, entity: impl Into<Entity>) {
@@ -84,7 +87,7 @@ impl StringComponentStore {
         key: K,
     ) {
         if !self.shared.contains_key(&target) {
-            self.shared.insert(target, RefCell::new(HashMap::new()));
+            self.shared.insert(target, HashMap::new());
         }
 
         let key = key.into();
@@ -94,7 +97,7 @@ impl StringComponentStore {
             comp.remove(&key);
         }
 
-        self.shared[&target].borrow_mut().insert(key, source);
+        self.shared.get_mut(&target).unwrap().insert(key, source);
     }
 
     /// Returns the number of components in the store.
@@ -127,8 +130,7 @@ impl StringComponentStore {
             .get(&entity)
             .ok_or_else(|| NotFound::Entity(entity))
             .and_then(|en| {
-                en.borrow()
-                    .get(&key)
+                en.get(&key)
                     .map(|entity| *entity)
                     .ok_or_else(|| NotFound::ComponentKey(key))
             })
