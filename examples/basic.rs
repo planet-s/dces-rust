@@ -13,8 +13,8 @@ struct Name(String);
 struct Depth(u32);
 
 pub struct SizeSystem;
-impl System<VecEntityStore> for SizeSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<VecEntityStore, TypeComponentStore> for SizeSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner {
@@ -27,8 +27,8 @@ impl System<VecEntityStore> for SizeSystem {
 }
 
 pub struct PrintSystem;
-impl System<VecEntityStore> for PrintSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<VecEntityStore, TypeComponentStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner {
@@ -42,54 +42,74 @@ impl System<VecEntityStore> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityStore>::new();
+    let mut world = World::<VecEntityStore, TypeComponentStore>::new();
 
     world
         .create_entity()
-        .with(Name(String::from("Button")))
-        .with(Depth(4))
-        .with(Size {
-            width: 5,
-            height: 5,
-        })
+        .components(
+            ComponentBuilder::new()
+                .with(Name(String::from("Button")))
+                .with(Depth(4))
+                .with(Size {
+                    width: 5,
+                    height: 5,
+                })
+                .build(),
+        )
         .build();
 
     world
         .create_entity()
-        .with(Name(String::from("CheckBox")))
-        .with(Depth(1))
-        .with(Size {
-            width: 3,
-            height: 3,
-        })
+        .components(
+            ComponentBuilder::new()
+                .with(Name(String::from("CheckBox")))
+                .with(Depth(1))
+                .with(Size {
+                    width: 3,
+                    height: 3,
+                })
+                .build(),
+        )
         .build();
 
     world
         .create_entity()
-        .with(Name(String::from("RadioButton")))
-        .with(Depth(2))
-        .with(Size {
-            width: 4,
-            height: 6,
-        })
+        .components(
+            ComponentBuilder::new()
+                .with(Name(String::from("RadioButton")))
+                .with(Depth(2))
+                .with(Size {
+                    width: 4,
+                    height: 6,
+                })
+                .build(),
+        )
         .build();
 
     world
         .create_entity()
-        .with(Depth(3))
-        .with(Size {
-            width: 10,
-            height: 4,
-        })
+        .components(
+            ComponentBuilder::new()
+                .with(Depth(3))
+                .with(Size {
+                    width: 10,
+                    height: 4,
+                })
+                .build(),
+        )
         .build();
 
     world
         .create_entity()
-        .with(Depth(0))
-        .with(Size {
-            width: 5,
-            height: 8,
-        })
+        .components(
+            ComponentBuilder::new()
+                .with(Depth(0))
+                .with(Size {
+                    width: 5,
+                    height: 8,
+                })
+                .build(),
+        )
         .build();
 
     world.create_system(PrintSystem).with_priority(1).build();

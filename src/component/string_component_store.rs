@@ -1,47 +1,37 @@
-use core::{
-    any::Any,
-    cell::RefCell,
-};
+use core::{any::Any, cell::RefCell};
 
 use std::collections::HashMap;
 
+use super::{Component, ComponentStore, Entity};
 use crate::error::NotFound;
-use super::{Entity, Component, EntityStore, ComponentStore};
 
-/// The type key based entity builder is used to create an entity with components.
-pub struct StringEntityBuilder<'a, T> where T: EntityStore
-{
-    /// The created entity.
-    pub entity: Entity,
-
-    /// Reference to the component store.
-    pub component_store: &'a mut StringComponentStore,
-
-    /// Reference to the entity store.
-    pub entity_store: &'a mut T,
+/// The `StringComponentBuilder` is used to build a set of string key based components.
+#[derive(Default)]
+pub struct StringComponentBuilder {
+    components: HashMap<String, Box<dyn Any>>,
+    shared: HashMap<String, Entity>,
 }
 
-impl<'a, T> StringEntityBuilder<'a, T> where
-    T: EntityStore,
-{
+impl StringComponentBuilder {
+    /// Creates an new builder with default values.
+    pub fn new() -> Self {
+        Self::default()
+    }
     /// Adds a component of type `C` to the entity.
-    pub fn with<C: Component>(self, key: impl Into<String>, component: C) -> Self {
-        self.component_store
-            .register_component(self.entity, component, key);
+    pub fn with<C: Component>(mut self, key: impl Into<String>, component: C) -> Self {
+        self.components.insert(key.into(), Box::new(component));
         self
     }
 
     /// Adds an entity as `source` for a shared component of type `C`.
-    pub fn with_shared<C: Component>(self, key: impl Into<String>, source: Entity) -> Self {
-        self.component_store
-            .register_shared_component::<C, String>(self.entity, source, key.into());
+    pub fn with_shared<C: Component>(mut self, key: impl Into<String>, source: Entity) -> Self {
+        self.shared.insert(key.into(), source);
         self
     }
 
     /// Finishing the creation of the entity.
-    pub fn build(self) -> Entity {
-        self.entity_store.register_entity(self.entity);
-        self.entity
+    pub fn build(self) -> (HashMap<String, Box<dyn Any>>, HashMap<String, Entity>) {
+        (self.components, self.shared)
     }
 }
 
@@ -54,6 +44,15 @@ pub struct StringComponentStore {
 }
 
 impl ComponentStore for StringComponentStore {
+    type Components = (
+        HashMap<String, Box<dyn Any>>,
+        RefCell<HashMap<String, Entity>>,
+    );
+
+    fn append(&mut self, _entity: Entity, _components: Self::Components) {
+        // todo
+    }
+
     fn register_entity(&mut self, entity: impl Into<Entity>) {
         self.components.insert(entity.into(), HashMap::new());
     }
@@ -64,10 +63,13 @@ impl ComponentStore for StringComponentStore {
 }
 
 impl StringComponentStore {
-   
-
     /// Register a `component` for the given `entity`.
-    pub fn register_component<C: Component>(&mut self, entity: Entity, component: C, key: impl Into<String>) {
+    pub fn register_component<C: Component>(
+        &mut self,
+        entity: Entity,
+        component: C,
+        key: impl Into<String>,
+    ) {
         self.components
             .get_mut(&entity)
             .get_or_insert(&mut HashMap::new())
@@ -75,7 +77,12 @@ impl StringComponentStore {
     }
 
     /// Registers a sharing of the given component between the given entities.
-    pub fn register_shared_component<C: Component, K: Into<String>>(&mut self, target: Entity, source: Entity, key: K) {
+    pub fn register_shared_component<C: Component, K: Into<String>>(
+        &mut self,
+        target: Entity,
+        source: Entity,
+        key: K,
+    ) {
         if !self.shared.contains_key(&target) {
             self.shared.insert(target, RefCell::new(HashMap::new()));
         }
@@ -87,9 +94,7 @@ impl StringComponentStore {
             comp.remove(&key);
         }
 
-        self.shared[&target]
-            .borrow_mut()
-            .insert(key, source);
+        self.shared[&target].borrow_mut().insert(key, source);
     }
 
     /// Returns the number of components in the store.
@@ -112,7 +117,11 @@ impl StringComponentStore {
     }
 
     // Search the the target entity in the entity map.
-    fn target_entity_from_shared(&self, entity: Entity, key: impl Into<String>) -> Result<Entity, NotFound> {
+    fn target_entity_from_shared(
+        &self,
+        entity: Entity,
+        key: impl Into<String>,
+    ) -> Result<Entity, NotFound> {
         let key = key.into();
         self.shared
             .get(&entity)
@@ -128,9 +137,7 @@ impl StringComponentStore {
     // Returns the target entity. First search in entities map. If not found search in shared entity map.
     fn target_entity(&self, entity: Entity, key: impl Into<String>) -> Result<Entity, NotFound> {
         let key = key.into();
-        if !self.components.contains_key(&entity)
-            || !self.components[&entity].contains_key(&key)
-        {
+        if !self.components.contains_key(&entity) || !self.components[&entity].contains_key(&key) {
             return self.target_entity_from_shared(entity, key);
         }
 
@@ -139,7 +146,11 @@ impl StringComponentStore {
 
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_component<C: Component>(&self, entity: Entity, key: impl Into<String>) -> Result<&C, NotFound> {
+    pub fn borrow_component<C: Component>(
+        &self,
+        entity: Entity,
+        key: impl Into<String>,
+    ) -> Result<&C, NotFound> {
         let key = key.into();
         let target_entity = self.target_entity(entity, key.clone());
 
@@ -166,7 +177,7 @@ impl StringComponentStore {
     pub fn borrow_mut_component<C: Component>(
         &mut self,
         entity: Entity,
-        key: impl Into<String>
+        key: impl Into<String>,
     ) -> Result<&mut C, NotFound> {
         let key = key.into();
         let target_entity = self.target_entity(entity, key.clone());

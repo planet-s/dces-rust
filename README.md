@@ -44,7 +44,7 @@ struct Name { value: String }
 
 struct PrintSystem;
 
-impl System<VecEntityStore> for PrintSystem {
+impl System<VecEntityStore, TypeComponentStore> for PrintSystem {
     fn run(&self, entities: &VecEntityStore, ecm: &mut EntityComponentManager) {
         for entity in &entities.inner {
             if let Ok(comp) = ecm.borrow_component::<Name>(*entity) {
@@ -55,7 +55,7 @@ impl System<VecEntityStore> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityStore>::new();
+    let mut world = World::<VecEntityStore, TypeComponentStore>::new();
 
     world.create_entity().with(Name { value: String::from("DCES") }).build();
     world.create_system(PrintSystem).build();

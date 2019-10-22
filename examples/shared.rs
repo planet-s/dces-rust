@@ -16,8 +16,8 @@ pub struct SizeSystem {
     source: Entity,
 }
 
-impl System<VecEntityStore> for SizeSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<VecEntityStore, TypeComponentStore> for SizeSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {
         if let Ok(comp) = ecm
             .component_store_mut()
             .borrow_mut_component::<Size>(self.source)
@@ -29,8 +29,8 @@ impl System<VecEntityStore> for SizeSystem {
 }
 
 pub struct PrintSystem;
-impl System<VecEntityStore> for PrintSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<VecEntityStore, TypeComponentStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {
@@ -47,23 +47,31 @@ impl System<VecEntityStore> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityStore>::new();
+    let mut world = World::<VecEntityStore, TypeComponentStore>::new();
 
     let source = world
         .create_entity()
-        .with(Name(String::from("Button")))
-        .with(Depth(4))
-        .with(Size {
-            width: 5,
-            height: 5,
-        })
+        .components(
+            ComponentBuilder::new()
+                .with(Name(String::from("Button")))
+                .with(Depth(4))
+                .with(Size {
+                    width: 5,
+                    height: 5,
+                })
+                .build(),
+        )
         .build();
 
     world
         .create_entity()
-        .with(Name(String::from("CheckBox")))
-        .with(Depth(1))
-        .with_shared::<Size>(source)
+        .components(
+            ComponentBuilder::new()
+                .with(Name(String::from("CheckBox")))
+                .with(Depth(1))
+                .with_shared::<Size>(source)
+                .build(),
+        )
         .build();
 
     world.create_system(PrintSystem).with_priority(1).build();

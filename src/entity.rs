@@ -1,3 +1,5 @@
+
+
 /// Represents an entity.
 #[derive(Copy, Clone, PartialEq, Hash, Eq, Debug, Ord, PartialOrd, Default)]
 pub struct Entity(pub u32);
@@ -52,7 +54,7 @@ mod tests {
         assert_eq!(entity.0, 5);
     }
 
-     #[test]
+    #[test]
     fn test_register_entity() {
         let mut store = VecEntityStore::default();
         let entity_one = Entity::from(1);
@@ -64,5 +66,19 @@ mod tests {
         assert!(store.inner.contains(&entity_one));
         assert!(store.inner.contains(&entity_two));
         assert!(!store.inner.contains(&entity_three));
+    }
+
+    #[test]
+    fn test_remove_entity() {
+        let mut store = VecEntityStore::default();
+        let entity_one = Entity::from(1);
+        store.inner.push(entity_one);
+        let entity_two = Entity::from(2);
+        store.inner.push(entity_two);
+
+        store.remove_entity(entity_one);
+
+        assert!(!store.inner.contains(&entity_one));
+        assert!(store.inner.contains(&entity_two));
     }
 }

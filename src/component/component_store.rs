@@ -1,14 +1,62 @@
-use core::{any::{Any, TypeId}, cell::RefCell};
+use core::any::{Any, TypeId};
 
 use std::collections::HashMap;
 
-use super::{Component, Entity, EntityStore, SharedComponentBox, ComponentBox, ComponentStore};
+use super::{
+    Component, ComponentBox, ComponentStore, Entity, EntityStore,
+    SharedComponentBox,
+};
 use crate::error::NotFound;
 
+/// The `StringComponentBuilder` is used to build a set of type key based components.
+#[derive(Default)]
+pub struct ComponentBuilder {
+    components: HashMap<TypeId, Box<dyn Any>>,
+    shared: HashMap<TypeId, Entity>,
+}
+
+impl ComponentBuilder {
+    /// Creates an new builder with default values.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Adds a component of type `C` to the entity.
+    pub fn with<C: Component>(mut self, component: C) -> Self {
+        self.components
+            .insert(TypeId::of::<C>(), Box::new(component));
+        self
+    }
+
+    /// Adds an entity as `source` for a shared component of type `C`.
+    pub fn with_shared<C: Component>(mut self, source: Entity) -> Self {
+        self.shared.insert(TypeId::of::<C>(), source);
+        self
+    }
+
+    /// Adds an entity as `source` for a shared component box.
+    pub fn with_shared_box(mut self, source: SharedComponentBox) -> Self {
+        self.shared.insert(source.type_id, source.source);
+        self
+    }
+
+    /// Adds a component box to the entity.
+    pub fn with_box(mut self, component_box: ComponentBox) -> Self {
+        let (type_id, component) = component_box.consume();
+        self.components.insert(type_id, component);
+        self
+    }
+
+    /// Finishing the creation of the entity.
+    pub fn build(self) -> (HashMap<TypeId, Box<dyn Any>>, HashMap<TypeId, Entity>) {
+        (self.components, self.shared)
+    }
+}
+
 /// The type key based entity builder is used to create an entity with components.
-pub struct TypeEntityBuilder<'a, T>
+pub struct TypeEntityBuilder<'a, E>
 where
-    T: EntityStore,
+    E: EntityStore,
 {
     /// The created entity.
     pub entity: Entity,
@@ -17,12 +65,12 @@ where
     pub component_store: &'a mut TypeComponentStore,
 
     /// Reference to the entity store.
-    pub entity_store: &'a mut T,
+    pub entity_store: &'a mut E,
 }
 
-impl<'a, T> TypeEntityBuilder<'a, T>
+impl<'a, E> TypeEntityBuilder<'a, E>
 where
-    T: EntityStore,
+    E: EntityStore,
 {
     /// Adds a component of type `C` to the entity.
     pub fn with<C: Component>(self, component: C) -> Self {
@@ -54,8 +102,7 @@ where
 
     /// Finishing the creation of the entity.
     pub fn build(self) -> Entity {
-        self.entity_store
-            .register_entity(self.entity);
+        self.entity_store.register_entity(self.entity);
         self.entity
     }
 }
@@ -65,12 +112,31 @@ where
 #[derive(Default, Debug)]
 pub struct TypeComponentStore {
     components: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
-    shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
+    shared: HashMap<Entity, HashMap<TypeId, Entity>>,
 }
 
 impl ComponentStore for TypeComponentStore {
+    type Components = (HashMap<TypeId, Box<dyn Any>>, HashMap<TypeId, Entity>);
+
+    fn append(&mut self, entity: Entity, components: Self::Components) {
+        self.register_entity(entity);
+        for (key, value) in components.0 {
+            self.components.get_mut(&entity).unwrap().insert(key, value);
+        }
+        for (key, value) in components.1 {
+            self.shared.get_mut(&entity).unwrap().insert(key, value);
+        }
+    }
+
     fn register_entity(&mut self, entity: impl Into<Entity>) {
-        self.components.insert(entity.into(), HashMap::new());
+        let entity = entity.into();
+        if !self.components.contains_key(&entity) {
+             self.components.insert(entity.into(), HashMap::new());
+        }
+
+        if !self.shared.contains_key(&entity) {
+             self.shared.insert(entity.into(), HashMap::new());
+        }      
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {
@@ -90,7 +156,7 @@ impl TypeComponentStore {
     /// Registers a sharing of the given component between the given entities.
     pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
         if !self.shared.contains_key(&target) {
-            self.shared.insert(target, RefCell::new(HashMap::new()));
+            self.shared.insert(target, HashMap::new());
         }
 
         // Removes unshared component of entity.
@@ -98,8 +164,9 @@ impl TypeComponentStore {
             comp.remove(&TypeId::of::<C>());
         }
 
-        self.shared[&target]
-            .borrow_mut()
+        self.shared
+            .get_mut(&target)
+            .unwrap()
             .insert(TypeId::of::<C>(), source);
     }
 
@@ -111,7 +178,7 @@ impl TypeComponentStore {
     ) {
         let target = target.into();
         if !self.shared.contains_key(&target) {
-            self.shared.insert(target, RefCell::new(HashMap::new()));
+            self.shared.insert(target, HashMap::new());
         }
 
         // Removes unshared component of entity.
@@ -119,8 +186,9 @@ impl TypeComponentStore {
             comp.remove(&source.type_id);
         }
 
-        self.shared[&target]
-            .borrow_mut()
+        self.shared
+            .get_mut(&target)
+            .unwrap()
             .insert(source.type_id, source.source);
     }
 
@@ -164,8 +232,7 @@ impl TypeComponentStore {
             .get(&entity)
             .ok_or_else(|| NotFound::Entity(entity))
             .and_then(|en| {
-                en.borrow()
-                    .get(&TypeId::of::<C>())
+                en.get(&TypeId::of::<C>())
                     .map(|entity| *entity)
                     .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
             })
