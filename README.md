@@ -15,7 +15,7 @@ The goal of DCES is a lightweight ECS library with zero dependencies used by UI 
 * Share components between entities
 * Register systems and read / write components of entities
 * Order systems execution by priority
-* Register container for entity organisation (Vec, HashMap, Custom Container, ...)
+* Register container for entity organization (Vec, HashMap, Custom Container, ...)
 * Register init and cleanup system
 
 ## Usage
@@ -72,7 +72,7 @@ You can start the `basic` example by executing the following command:
 cargo run --example basic
 ```
 
-## Build and run documenation
+## Build and run documentation
 
 You can build and run the latest documentation by executing the following command:
 
@@ -96,3 +96,7 @@ cargo doc --no-deps --open
 ### Why not Specs
 Because DCES is developed to fulfill the requirements of OrbTk. To reduce the dependency tree of OrbTk
 DCES depends on zero crates.
+
+## License
+
+Licensed under MIT license ([LICENSE](LICENSE)).

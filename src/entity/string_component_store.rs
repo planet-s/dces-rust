@@ -6,7 +6,44 @@ use core::{
 use std::collections::HashMap;
 
 use crate::error::NotFound;
-use super::{Entity, Component};
+use super::{Entity, Component, EntityStore};
+
+/// The type key based entity builder is used to create an entity with components.
+pub struct StringEntityBuilder<'a, T> where T: EntityStore
+{
+    /// The created entity.
+    pub entity: Entity,
+
+    /// Reference to the component store.
+    pub component_store: &'a mut StringComponentStore,
+
+    /// Reference to the entity store.
+    pub entity_store: &'a mut T,
+}
+
+impl<'a, T> StringEntityBuilder<'a, T> where
+    T: EntityStore,
+{
+    /// Adds a component of type `C` to the entity.
+    pub fn with<C: Component>(self, key: impl Into<String>, component: C) -> Self {
+        self.component_store
+            .register_component(self.entity, component, key);
+        self
+    }
+
+    /// Adds an entity as `source` for a shared component of type `C`.
+    pub fn with_shared<C: Component>(self, key: impl Into<String>, source: Entity) -> Self {
+        self.component_store
+            .register_shared_component::<C, String>(self.entity, source, key.into());
+        self
+    }
+
+    /// Finishing the creation of the entity.
+    pub fn build(self) -> Entity {
+        self.entity_store.register_entity(self.entity);
+        self.entity
+    }
+}
 
 /// The `StringComponentStore` stores the components of entities and uses strings as component keys. It could be used to
 /// borrow the components of the entities.
@@ -17,6 +54,16 @@ pub struct StringComponentStore {
 }
 
 impl StringComponentStore {
+    /// Registers an new entity on the store.
+    pub fn register_entity(&mut self, entity: impl Into<Entity>) {
+        self.components.insert(entity.into(), HashMap::new());
+    }
+
+    /// Removes and entity from the store.
+    pub fn remove_entity(&mut self, entity: impl Into<Entity>) {
+        self.components.remove(&entity.into());
+    }
+
     /// Register a `component` for the given `entity`.
     pub fn register_component<C: Component>(&mut self, entity: Entity, component: C, key: impl Into<String>) {
         self.components
@@ -26,7 +73,7 @@ impl StringComponentStore {
     }
 
     /// Registers a sharing of the given component between the given entities.
-    pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity, key: impl Into<String>) {
+    pub fn register_shared_component<C: Component, K: Into<String>>(&mut self, target: Entity, source: Entity, key: K) {
         if !self.shared.contains_key(&target) {
             self.shared.insert(target, RefCell::new(HashMap::new()));
         }
