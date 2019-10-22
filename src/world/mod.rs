@@ -2,7 +2,7 @@ use core::cell::Cell;
 use core::ops::Drop;
 
 use crate::{
-    entity::{Entity, EntityBuilder, EntityComponentManager, EntityStore, VecEntityStore},
+    entity::{Entity, TypeEntityBuilder, EntityComponentManager, EntityStore, VecEntityStore},
     system::{EntitySystemBuilder, EntitySystemManager, System},
 };
 
@@ -56,8 +56,8 @@ where
         }
     }
 
-    /// Creates a new entity and returns a returns an `EntityBuilder`.
-    pub fn create_entity(&mut self) -> EntityBuilder<'_, T> {
+    /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
+    pub fn create_entity(&mut self) -> TypeEntityBuilder<'_, T> {
         self.entity_component_manager.create_entity()
     }
 

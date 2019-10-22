@@ -9,7 +9,10 @@ use std::collections::HashMap;
 #[cfg(feature = "no_std")]
 use alloc::collections::{BTreeMap, HashMap};
 
+pub use self::string_component_store::*;
 use crate::error::NotFound;
+
+mod string_component_store;
 
 #[cfg(test)]
 mod tests;
@@ -70,8 +73,8 @@ impl ComponentBox {
     }
 }
 
-/// The entity builder is used to create an entity with components.
-pub struct EntityBuilder<'a, T>
+/// The type key based entity builder is used to create an entity with components.
+pub struct TypeEntityBuilder<'a, T>
 where
     T: EntityStore,
 {
@@ -83,7 +86,7 @@ where
     pub entity_component_manager: &'a mut EntityComponentManager<T>,
 }
 
-impl<'a, T> EntityBuilder<'a, T>
+impl<'a, T> TypeEntityBuilder<'a, T>
 where
     T: EntityStore,
 {
@@ -130,7 +133,7 @@ pub struct EntityComponentManager<T>
 where
     T: EntityStore,
 {
-    component_store: ComponentStore,
+    component_store: TypeComponentStore,
 
     entity_store: T,
 
@@ -145,28 +148,28 @@ where
     pub fn new(entity_store: T) -> Self {
         EntityComponentManager {
             entity_counter: 0,
-            component_store: ComponentStore::default(),
+            component_store: TypeComponentStore::default(),
             entity_store,
         }
     }
 
     /// Returns references to the component store and entity store.
-    pub fn stores(&self) -> (&T, &ComponentStore) {
+    pub fn stores(&self) -> (&T, &TypeComponentStore) {
         (&self.entity_store, &self.component_store)
     }
 
     /// Returns mutable references to the component store and entity store.
-    pub fn stores_mut(&mut self) -> (&mut T, &mut ComponentStore) {
+    pub fn stores_mut(&mut self) -> (&mut T, &mut TypeComponentStore) {
         (&mut self.entity_store, &mut self.component_store)
     }
 
     /// Return a reference to the component container.
-    pub fn component_store(&self) -> &ComponentStore {
+    pub fn component_store(&self) -> &TypeComponentStore {
         &self.component_store
     }
 
     /// Return a mutable reference to the component container.
-    pub fn component_store_mut(&mut self) -> &mut ComponentStore {
+    pub fn component_store_mut(&mut self) -> &mut TypeComponentStore {
         &mut self.component_store
     }
 
@@ -180,8 +183,8 @@ where
         &mut self.entity_store
     }
 
-    /// Creates a new entity and returns a returns an `EntityBuilder`.
-    pub fn create_entity(&mut self) -> EntityBuilder<'_, T> {
+    /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
+    pub fn create_entity(&mut self) -> TypeEntityBuilder<'_, T> {
         let entity: Entity = self.entity_counter.into();
 
         self.component_store
@@ -189,7 +192,7 @@ where
             .insert(entity, HashMap::new());
         self.entity_counter += 1;
 
-        EntityBuilder {
+        TypeEntityBuilder {
             entity,
             entity_component_manager: self,
         }
@@ -272,15 +275,15 @@ impl EntityStore for VecEntityStore {
     }
 }
 
-/// The `ComponentStore` stores the components of all entities. It could be used to
+/// The `TypeComponentStore` stores the components of all entities. It could be used to
 /// borrow the components of the entities.
 #[derive(Default, Debug)]
-pub struct ComponentStore {
+pub struct TypeComponentStore {
     components: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
     shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
 }
 
-impl ComponentStore {
+impl TypeComponentStore {
     /// Register a `component` for the given `entity`.
     pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
         self.components
@@ -433,3 +436,4 @@ impl ComponentStore {
         }
     }
 }
+

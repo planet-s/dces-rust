@@ -1,7 +1,8 @@
 # 0.2
 
 * Updated the api of EntityComponentManager
-* Introduced ComponentStore
+* Introduced TypeComponentStore
+* Add StringComponentStore
 
 # 0.1.3 / 0.1.4 / 0.1.5 / 0.1.6 Init and cleanup system
 

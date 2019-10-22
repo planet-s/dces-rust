@@ -39,7 +39,7 @@ fn test_register_shared_component() {
 
 #[test]
 fn test_build() {
-    let eb = EntityBuilder {
+    let eb = TypeEntityBuilder {
         entity: 0.into(),
         entity_component_manager: &mut EntityComponentManager::new(VecEntityStore {
             inner: vec![],
@@ -55,7 +55,7 @@ fn test_with() {
     ecm.register_entity(0);
 
     {
-        let eb = EntityBuilder {
+        let eb = TypeEntityBuilder {
             entity: 0.into(),
             entity_component_manager: &mut ecm,
         };
@@ -76,7 +76,7 @@ fn test_with_shared() {
     ecm.register_entity(0);
 
     {
-        let eb = EntityBuilder {
+        let eb = TypeEntityBuilder {
             entity: 0.into(),
             entity_component_manager: &mut ecm,
         };
@@ -87,7 +87,7 @@ fn test_with_shared() {
     ecm.register_entity(1);
 
     {
-        let eb = EntityBuilder {
+        let eb = TypeEntityBuilder {
             entity: 1.into(),
             entity_component_manager: &mut ecm,
         };
