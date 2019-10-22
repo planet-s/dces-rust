@@ -219,5 +219,12 @@ impl EntityStore for VecEntityStore {
     }
 }
 
+/// This trait is used to define a custom component store.
+pub trait ComponentStore {
+    /// Registers an new entity on the store.
+    fn register_entity(&mut self, entity: impl Into<Entity>);
 
+    /// Removes and entity from the store.
+    fn remove_entity(&mut self, entity: impl Into<Entity>);
+}
 

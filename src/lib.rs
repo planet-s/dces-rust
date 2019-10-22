@@ -47,7 +47,7 @@
 //!     world.run();
 //! }
 //! ```
-pub mod entity;
+pub mod component;
 pub mod error;
 pub mod prelude;
 pub mod system;

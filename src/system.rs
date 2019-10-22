@@ -7,14 +7,11 @@ use std::collections::{BTreeMap, HashMap};
 use alloc::collections::{BTreeMap, HashMap};
 
 use crate::{
-    entity::{EntityComponentManager, EntityStore},
+    component::{EntityComponentManager, EntityStore},
     error::NotFound,
 };
 
-#[cfg(test)]
-mod tests;
-
-/// The run order of a system. The systems will be excuted by priority from small to great.
+/// The run order of a system. The systems will be executed by priority from small to great.
 pub type Priority = i32;
 
 /// This trait is used to interact with the components of entities. It could
@@ -44,23 +41,23 @@ impl<T> EntitySystem<T> {
     }
 }
 
-/// The entity system builder is used to create an entity system.
-pub struct EntitySystemBuilder<'a, T>
+/// The system store builder is used to create a system.
+pub struct SystemStoreBuilder<'a, T>
 where
     T: EntityStore,
 {
     /// Id of the entity system.
     pub entity_system_id: u32,
 
-    /// Reference to the entity system manager, used to apply filter, sort and priority
+    /// Reference to the system store, used to apply filter, sort and priority
     /// to the system.
-    pub entity_system_manager: &'a mut EntitySystemManager<T>,
+    pub system_store: &'a mut SystemStore<T>,
 
     // Priority of the entity system.
     pub priority: Cell<i32>,
 }
 
-impl<'a, T> EntitySystemBuilder<'a, T>
+impl<'a, T> SystemStoreBuilder<'a, T>
 where
     T: EntityStore,
 {
@@ -72,15 +69,15 @@ where
 
     /// Finishing the creation of the system.
     pub fn build(self) -> u32 {
-        self.entity_system_manager
+        self.system_store
             .register_priority(self.priority.get(), self.entity_system_id);
         self.entity_system_id
     }
 }
 
-/// The EntitySystemManager represents the main system storage.
+/// The SystemStore represents the main system storage.
 #[derive(Default)]
-pub struct EntitySystemManager<T>
+pub struct SystemStore<T>
 where
     T: EntityStore,
 {
@@ -97,13 +94,13 @@ where
     pub priorities: BTreeMap<i32, Vec<u32>>,
 }
 
-impl<T> EntitySystemManager<T>
+impl<T> SystemStore<T>
 where
     T: EntityStore,
 {
-    /// Creates a new entity system manager with default values.
+    /// Creates a new system store with default values.
     pub fn new() -> Self {
-        EntitySystemManager {
+        SystemStore {
             entity_systems: HashMap::new(),
             init_system: None,
             cleanup_system: None,
@@ -164,5 +161,104 @@ where
     /// Returns a reference of the cleanup entity system. If the init entity system does not exists `None` will be returned.
     pub fn borrow_cleanup_system(&self) -> &Option<EntitySystem<T>> {
         &self.cleanup_system
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::component::VecEntityStore;
+
+    struct TestSystem;
+
+    impl System<VecEntityStore> for TestSystem {
+        fn run(&self, _ecm: &mut EntityComponentManager<VecEntityStore>) {}
+    }
+
+    #[test]
+    fn test_register_system() {
+        let mut esm = SystemStore::new();
+        esm.register_system(TestSystem, 0);
+
+        assert!(esm.entity_systems.contains_key(&0));
+    }
+
+    #[test]
+    fn test_register_init_system() {
+        let mut esm = SystemStore::new();
+
+        assert!(esm.init_system.is_none());
+        esm.register_init_system(TestSystem);
+
+        assert!(esm.init_system.is_some());
+    }
+
+    #[test]
+    fn test_register_cleanup_system() {
+        let mut esm = SystemStore::new();
+
+        assert!(esm.cleanup_system.is_none());
+        esm.register_cleanup_system(TestSystem);
+
+        assert!(esm.cleanup_system.is_some());
+    }
+
+    #[test]
+    fn test_remove_system() {
+        let mut esm = SystemStore::new();
+        esm.register_system(TestSystem, 0);
+        esm.remove_system(0);
+
+        assert!(!esm.entity_systems.contains_key(&0));
+    }
+
+    #[test]
+    fn test_register_priority() {
+        let mut esm = SystemStore::new();
+        esm.register_system(TestSystem, 0);
+        esm.register_priority(5, 0);
+
+        assert_eq!(esm.entity_systems.get(&0).unwrap().priority, 5);
+        assert!(esm.priorities.contains_key(&5));
+    }
+
+    #[test]
+    fn test_borrow_init_entity_system() {
+        let mut esm = SystemStore::new();
+        esm.register_init_system(TestSystem);
+
+        assert!(esm.borrow_init_system().is_some());
+    }
+
+    #[test]
+    fn test_borrow_cleanup_entity_system() {
+        let mut esm = SystemStore::new();
+        esm.register_cleanup_system(TestSystem);
+
+        assert!(esm.borrow_cleanup_system().is_some());
+    }
+
+    #[test]
+    fn test_borrow_entity_system() {
+        let mut esm = SystemStore::new();
+        esm.register_system(TestSystem, 0);
+
+        assert!(esm.borrow_entity_system(0).is_ok());
+    }
+
+    #[test]
+    fn test_build() {
+        let mut esm = SystemStore::new();
+        esm.register_system(TestSystem, 0);
+
+        {
+            let esb = SystemStoreBuilder {
+                entity_system_id: 0,
+                system_store: &mut esm,
+                priority: Cell::new(0),
+            };
+
+            assert_eq!(esb.build(), 0);
+        }
     }
 }

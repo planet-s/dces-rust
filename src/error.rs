@@ -1,6 +1,6 @@
 use core::any::TypeId;
 
-use crate::entity::Entity;
+use crate::component::Entity;
 
 /// Not found error.
 #[derive(Debug, Clone, PartialEq, Eq)]

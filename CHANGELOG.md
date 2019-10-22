@@ -1,8 +1,10 @@
 # 0.2
 
-* Updated the api of EntityComponentManager
-* Introduced TypeComponentStore
-* Add StringComponentStore
+* Improve module structure
+* Improve naming
+* Add TypeComponentStore and builder
+* Add StringComponentStore and builder
+* Add string key example
 
 # 0.1.3 / 0.1.4 / 0.1.5 / 0.1.6 Init and cleanup system
 

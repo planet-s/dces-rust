@@ -2,12 +2,9 @@ use core::cell::Cell;
 use core::ops::Drop;
 
 use crate::{
-    entity::{Entity, TypeEntityBuilder, EntityComponentManager, EntityStore, VecEntityStore},
-    system::{EntitySystemBuilder, EntitySystemManager, System},
+    component::{Entity, EntityComponentManager, EntityStore, TypeEntityBuilder, VecEntityStore},
+    system::{System, SystemStore, SystemStoreBuilder},
 };
-
-#[cfg(test)]
-mod tests;
 
 /// The `World` struct represents the main interface of the library. It used
 /// as storage of entities, components and systems.
@@ -17,7 +14,7 @@ where
     T: EntityStore,
 {
     entity_component_manager: EntityComponentManager<T>,
-    entity_system_manager: EntitySystemManager<T>,
+    entity_system_manager: SystemStore<T>,
     entity_system_counter: u32,
     first_run: bool,
 }
@@ -50,7 +47,7 @@ where
     pub fn from_container(entity_store: T) -> Self {
         World {
             entity_component_manager: EntityComponentManager::new(entity_store),
-            entity_system_manager: EntitySystemManager::new(),
+            entity_system_manager: SystemStore::new(),
             entity_system_counter: 0,
             first_run: true,
         }
@@ -77,15 +74,15 @@ where
             .register_cleanup_system(cleanup_system);
     }
 
-    /// Creates a new entity system and returns a returns an `EntitySystemBuilder`.
-    pub fn create_system(&mut self, system: impl System<T>) -> EntitySystemBuilder<'_, T> {
+    /// Creates a new entity system and returns a returns an `SystemStoreBuilder`.
+    pub fn create_system(&mut self, system: impl System<T>) -> SystemStoreBuilder<'_, T> {
         let entity_system_id = self.entity_system_counter;
         self.entity_system_manager
             .register_system(system, entity_system_id);
         self.entity_system_counter += 1;
 
-        EntitySystemBuilder {
-            entity_system_manager: &mut self.entity_system_manager,
+        SystemStoreBuilder {
+            system_store: &mut self.entity_system_manager,
             entity_system_id,
             priority: Cell::new(0),
         }
@@ -111,8 +108,8 @@ where
         }
 
         let priorities = &self.entity_system_manager.priorities;
-        for (_, prio) in priorities {
-            for system in prio {
+        for (_, priority) in priorities {
+            for system in priority {
                 self.entity_system_manager
                     .borrow_entity_system(*system)
                     .unwrap()
@@ -120,5 +117,31 @@ where
                     .run(&mut self.entity_component_manager);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Default)]
+    struct TestSystem;
+
+    impl System<VecEntityStore> for TestSystem {
+        fn run(&self, _ecm: &mut EntityComponentManager<VecEntityStore>) {}
+    }
+
+    #[test]
+    fn create_entity() {
+        let mut world = World::<VecEntityStore>::new();
+        assert_eq!(Entity(0), world.create_entity().build());
+        assert_eq!(Entity(1), world.create_entity().build());
+    }
+
+    #[test]
+    fn create_system() {
+        let mut world = World::<VecEntityStore>::new();
+        assert_eq!(0, world.create_system(TestSystem).build());
+        assert_eq!(1, world.create_system(TestSystem).build());
     }
 }

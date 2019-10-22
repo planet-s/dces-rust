@@ -1,5 +1,5 @@
 pub use crate::{
-    entity::{
+    component::{
         Component, ComponentBox, TypeComponentStore, Entity, EntityComponentManager, EntityStore,
         SharedComponentBox, VecEntityStore,
     },

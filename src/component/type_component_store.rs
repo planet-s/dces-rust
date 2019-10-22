@@ -2,7 +2,7 @@ use core::{any::{Any, TypeId}, cell::RefCell};
 
 use std::collections::HashMap;
 
-use super::{Component, Entity, EntityStore, SharedComponentBox, ComponentBox};
+use super::{Component, Entity, EntityStore, SharedComponentBox, ComponentBox, ComponentStore};
 use crate::error::NotFound;
 
 /// The type key based entity builder is used to create an entity with components.
@@ -68,17 +68,17 @@ pub struct TypeComponentStore {
     shared: HashMap<Entity, RefCell<HashMap<TypeId, Entity>>>,
 }
 
-impl TypeComponentStore {
-    /// Registers an new entity on the store.
-    pub fn register_entity(&mut self, entity: impl Into<Entity>) {
+impl ComponentStore for TypeComponentStore {
+    fn register_entity(&mut self, entity: impl Into<Entity>) {
         self.components.insert(entity.into(), HashMap::new());
     }
 
-    /// Removes and entity from the store.
-    pub fn remove_entity(&mut self, entity: impl Into<Entity>) {
+    fn remove_entity(&mut self, entity: impl Into<Entity>) {
         self.components.remove(&entity.into());
     }
+}
 
+impl TypeComponentStore {
     /// Register a `component` for the given `entity`.
     pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
         self.components
