@@ -5,6 +5,8 @@ use core::{
 #[cfg(feature = "no_std")]
 use alloc::collections::{BTreeMap, HashMap};
 
+use crate::entity::*;
+
 pub use self::string_component_store::*;
 pub use self::type_component_store::*;
 
@@ -13,16 +15,6 @@ mod type_component_store;
 
 #[cfg(test)]
 mod tests;
-
-/// Represents an entity.
-#[derive(Copy, Clone, PartialEq, Hash, Eq, Debug, Ord, PartialOrd, Default)]
-pub struct Entity(pub u32);
-
-impl From<u32> for Entity {
-    fn from(u: u32) -> Self {
-        Entity(u)
-    }
-}
 
 /// This trait is used to internal handle all components types. This trait is implicitly implemented for all other types.
 pub trait Component: Any {}
@@ -185,37 +177,6 @@ where
     ) {
         self.component_store
             .register_component_box(entity, component_box);
-    }
-}
-
-/// This trait is used to define a custom store for entities.
-/// A entity container is used for entity iteration inside of the
-/// system's run methods.
-pub trait EntityStore {
-    /// Registers the give 'entity'.
-    fn register_entity(&mut self, entity: impl Into<Entity>);
-
-    /// Removes the given 'entity'.
-    fn remove_entity(&mut self, entity: impl Into<Entity>);
-}
-
-/// VecEntityStore is the default vector based implementation of an entity store.
-#[derive(Default)]
-pub struct VecEntityStore {
-    pub inner: Vec<Entity>,
-}
-
-impl EntityStore for VecEntityStore {
-    fn register_entity(&mut self, entity: impl Into<Entity>) {
-        self.inner.push(entity.into());
-    }
-
-    fn remove_entity(&mut self, entity: impl Into<Entity>) {
-        let entity = entity.into();
-        self.inner
-            .iter()
-            .position(|&n| n == entity)
-            .map(|e| self.inner.remove(e));
     }
 }
 

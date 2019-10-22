@@ -2,29 +2,30 @@ use core::cell::Cell;
 use core::ops::Drop;
 
 use crate::{
-    component::{Entity, EntityComponentManager, EntityStore, TypeEntityBuilder, VecEntityStore},
+    component::*,
+    entity::*,
     system::{System, SystemStore, SystemStoreBuilder},
 };
 
 /// The `World` struct represents the main interface of the library. It used
 /// as storage of entities, components and systems.
 #[derive(Default)]
-pub struct World<T>
+pub struct World<E>
 where
-    T: EntityStore,
+    E: EntityStore,
 {
-    entity_component_manager: EntityComponentManager<T>,
-    entity_system_manager: SystemStore<T>,
-    entity_system_counter: u32,
+    entity_component_manager: EntityComponentManager<E>,
+    system_store: SystemStore<E>,
+    system_counter: u32,
     first_run: bool,
 }
 
-impl<T> Drop for World<T>
+impl<E> Drop for World<E>
 where
-    T: EntityStore,
+    E: EntityStore,
 {
     fn drop(&mut self) {
-        if let Some(cleanup_system) = self.entity_system_manager.borrow_cleanup_system() {
+        if let Some(cleanup_system) = self.system_store.borrow_cleanup_system() {
             cleanup_system
                 .system
                 .run(&mut self.entity_component_manager);
@@ -32,11 +33,11 @@ where
     }
 }
 
-unsafe impl<T> Send for World<T> where T: EntityStore {}
+unsafe impl<E> Send for World<E> where E: EntityStore {}
 
-impl<T> World<T>
+impl<E> World<E>
 where
-    T: EntityStore,
+    E: EntityStore,
 {
     /// Creates a new world the a vector based entity container.
     pub fn new() -> World<VecEntityStore> {
@@ -44,17 +45,17 @@ where
     }
 
     /// Creates a new world from the given container.
-    pub fn from_container(entity_store: T) -> Self {
+    pub fn from_container(entity_store: E) -> Self {
         World {
             entity_component_manager: EntityComponentManager::new(entity_store),
-            entity_system_manager: SystemStore::new(),
-            entity_system_counter: 0,
+            system_store: SystemStore::new(),
+            system_counter: 0,
             first_run: true,
         }
     }
 
     /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
-    pub fn create_entity(&mut self) -> TypeEntityBuilder<'_, T> {
+    pub fn create_entity(&mut self) -> TypeEntityBuilder<'_, E> {
         self.entity_component_manager.create_entity()
     }
 
@@ -64,25 +65,23 @@ where
     }
 
     /// Registers the init system.
-    pub fn register_init_system(&mut self, init_system: impl System<T>) {
-        self.entity_system_manager.register_init_system(init_system);
+    pub fn register_init_system(&mut self, init_system: impl System<E>) {
+        self.system_store.register_init_system(init_system);
     }
 
     /// Registers the cleanup system.
-    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<T>) {
-        self.entity_system_manager
-            .register_cleanup_system(cleanup_system);
+    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<E>) {
+        self.system_store.register_cleanup_system(cleanup_system);
     }
 
     /// Creates a new entity system and returns a returns an `SystemStoreBuilder`.
-    pub fn create_system(&mut self, system: impl System<T>) -> SystemStoreBuilder<'_, T> {
-        let entity_system_id = self.entity_system_counter;
-        self.entity_system_manager
-            .register_system(system, entity_system_id);
-        self.entity_system_counter += 1;
+    pub fn create_system(&mut self, system: impl System<E>) -> SystemStoreBuilder<'_, E> {
+        let entity_system_id = self.system_counter;
+        self.system_store.register_system(system, entity_system_id);
+        self.system_counter += 1;
 
         SystemStoreBuilder {
-            system_store: &mut self.entity_system_manager,
+            system_store: &mut self.system_store,
             entity_system_id,
             priority: Cell::new(0),
         }
@@ -90,27 +89,27 @@ where
 
     /// Removes the given `entity`.
     pub fn remove_system(&mut self, system_id: u32) {
-        self.entity_system_manager.remove_system(system_id);
+        self.system_store.remove_system(system_id);
     }
 
     /// Borrows mutable the entity component manager.
-    pub fn entity_component_manager(&mut self) -> &mut EntityComponentManager<T> {
+    pub fn entity_component_manager(&mut self) -> &mut EntityComponentManager<E> {
         &mut self.entity_component_manager
     }
 
     /// Run all systems of the world.
     pub fn run(&mut self) {
         if self.first_run {
-            if let Some(init_system) = self.entity_system_manager.borrow_init_system() {
+            if let Some(init_system) = self.system_store.borrow_init_system() {
                 init_system.system.run(&mut self.entity_component_manager);
             }
             self.first_run = false;
         }
 
-        let priorities = &self.entity_system_manager.priorities;
+        let priorities = &self.system_store.priorities;
         for (_, priority) in priorities {
             for system in priority {
-                self.entity_system_manager
+                self.system_store
                     .borrow_entity_system(*system)
                     .unwrap()
                     .system
@@ -123,6 +122,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::{Entity, VecEntityStore};
 
     #[derive(Default)]
     struct TestSystem;

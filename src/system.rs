@@ -7,7 +7,8 @@ use std::collections::{BTreeMap, HashMap};
 use alloc::collections::{BTreeMap, HashMap};
 
 use crate::{
-    component::{EntityComponentManager, EntityStore},
+    entity::*,
+    component::*,
     error::NotFound,
 };
 
@@ -167,7 +168,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::component::VecEntityStore;
+    use crate::entity::VecEntityStore;
 
     struct TestSystem;
 

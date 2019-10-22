@@ -1,8 +1,9 @@
 pub use crate::{
     component::{
-        Component, ComponentBox, TypeComponentStore, Entity, EntityComponentManager, EntityStore,
-        SharedComponentBox, VecEntityStore,
+        Component, ComponentBox, TypeComponentStore, EntityComponentManager,
+        SharedComponentBox,
     },
+    entity::{Entity, EntityStore, VecEntityStore},
     error::NotFound,
     system::{Priority, System},
     world::World,
