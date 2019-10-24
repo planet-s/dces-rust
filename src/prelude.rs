@@ -1,6 +1,6 @@
 pub use crate::{
     component::{
-        Component, EntityBuilder, EntityComponentManager, SharedComponentBox,
+        Component, ComponentBox, EntityBuilder, EntityComponentManager, SharedComponentBox,
         StringComponentBuilder, StringComponentStore, TypeComponentBuilder as ComponentBuilder,
         TypeComponentStore as ComponentStore,
     },
