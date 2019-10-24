@@ -2,7 +2,7 @@ use core::any::Any;
 
 use std::collections::HashMap;
 
-use super::{Component, ComponentStore, Entity};
+use super::{Component, ComponentBox, ComponentStore, Entity, SharedComponentBox};
 use crate::error::NotFound;
 
 /// The `StringComponentBuilder` is used to build a set of string key based components.
@@ -105,6 +105,45 @@ impl StringComponentStore {
         }
 
         self.shared.get_mut(&target).unwrap().insert(key, source);
+    }
+
+    /// Registers a sharing of the given component between the given entities.
+    pub fn register_shared_component_box(
+        &mut self,
+        key: &str,
+        target: Entity,
+        source: SharedComponentBox,
+    ) {
+        if !self.shared.contains_key(&target) {
+            self.shared.insert(target, HashMap::new());
+        }
+
+        let key = key.into();
+
+        // Removes unshared component of entity.
+        if let Some(comp) = self.components.get_mut(&target) {
+            comp.remove(&key);
+        }
+
+        self.shared
+            .get_mut(&target)
+            .unwrap()
+            .insert(key, source.source);
+    }
+
+    /// Register a `component_box` for the given `entity`.
+    pub fn register_component_box(
+        &mut self,
+        key: &str,
+        entity: Entity,
+        component_box: ComponentBox,
+    ) {
+        let (_, component) = component_box.consume();
+
+        self.components
+            .get_mut(&entity)
+            .get_or_insert(&mut HashMap::new())
+            .insert(key.into(), component);
     }
 
     /// Returns the number of components in the store.
