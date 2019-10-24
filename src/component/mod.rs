@@ -42,6 +42,7 @@ where
     /// Finishing the creation of the entity.
     pub fn build(self) -> Entity {
         self.entity_store.register_entity(self.entity);
+        self.component_store.register_entity(self.entity);
         self.entity
     }
 }
@@ -164,6 +165,8 @@ where
 
     /// Register a new `entity`.
     pub fn register_entity(&mut self, entity: impl Into<Entity>) {
+        let entity = entity.into();
+        self.entity_store.register_entity(entity);
         self.component_store.register_entity(entity);
     }
 

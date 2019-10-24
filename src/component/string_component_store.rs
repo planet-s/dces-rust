@@ -58,8 +58,13 @@ impl ComponentStore for StringComponentStore {
 
     fn register_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
-        self.components.insert(entity, HashMap::new());
-        self.shared.insert(entity, HashMap::new());
+        if !self.components.contains_key(&entity) {
+            self.components.insert(entity.into(), HashMap::new());
+        }
+
+        if !self.shared.contains_key(&entity) {
+            self.shared.insert(entity.into(), HashMap::new());
+        }
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {
@@ -73,7 +78,7 @@ impl StringComponentStore {
         &mut self,
         key: impl Into<String>,
         entity: Entity,
-        component: C
+        component: C,
     ) {
         self.components
             .get_mut(&entity)
@@ -86,8 +91,7 @@ impl StringComponentStore {
         &mut self,
         key: &str,
         target: Entity,
-        source: Entity
-        
+        source: Entity,
     ) {
         if !self.shared.contains_key(&target) {
             self.shared.insert(target, HashMap::new());
@@ -125,8 +129,8 @@ impl StringComponentStore {
     // Search the the target entity in the entity map.
     fn target_entity_from_shared(
         &self,
-         key: impl Into<String>,
-        entity: Entity
+        key: impl Into<String>,
+        entity: Entity,
     ) -> Result<Entity, NotFound> {
         let key = key.into();
         self.shared
@@ -154,7 +158,7 @@ impl StringComponentStore {
     pub fn borrow_component<C: Component>(
         &self,
         key: &str,
-        entity: Entity
+        entity: Entity,
     ) -> Result<&C, NotFound> {
         let target_entity = self.target_entity(entity, key);
 
@@ -180,8 +184,8 @@ impl StringComponentStore {
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
     pub fn borrow_mut_component<C: Component, K>(
         &mut self,
-          key: &str,
-        entity: Entity
+        key: &str,
+        entity: Entity,
     ) -> Result<&mut C, NotFound> {
         let target_entity = self.target_entity(entity, key);
 
@@ -279,11 +283,11 @@ mod tests {
         let component = String::from("Test");
 
         store.register_entity(entity);
-        store.register_component("test",entity, component);
-        store.register_shared_component::<String>("test",target, entity);
+        store.register_component("test", entity, component);
+        store.register_shared_component::<String>("test", target, entity);
 
-        assert!(store.borrow_component::<String>("test",entity).is_ok());
-        assert!(store.borrow_component::<String>("test",target).is_ok());
+        assert!(store.borrow_component::<String>("test", entity).is_ok());
+        assert!(store.borrow_component::<String>("test", target).is_ok());
         assert!(store.is_origin::<String>("test", entity));
         assert!(!store.is_origin::<String>("test", target));
     }
