@@ -182,7 +182,7 @@ impl StringComponentStore {
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_mut_component<C: Component, K>(
+    pub fn borrow_mut_component<C: Component>(
         &mut self,
         key: &str,
         entity: Entity,
