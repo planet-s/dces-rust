@@ -9,7 +9,7 @@ impl System<EntityStore, ComponentStore> for UpdateSystem {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
-            if let Ok(comp) = c_store.borrow_mut_component::<Counter>(*entity) {
+            if let Ok(comp) = c_store.get_mut::<Counter>(*entity) {
                 comp.0 += 1;
             }
         }
@@ -22,7 +22,7 @@ impl System<EntityStore, ComponentStore> for TestUpdateSystem {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
-            if let Ok(comp) = c_store.borrow_mut_component::<Counter>(*entity) {
+            if let Ok(comp) = c_store.get_mut::<Counter>(*entity) {
                 assert_eq!(comp.0, self.0);
             }
         }

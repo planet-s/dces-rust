@@ -20,7 +20,7 @@ impl System<EntityStore, ComponentStore> for SizeSystem {
     fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         if let Ok(comp) = ecm
             .component_store_mut()
-            .borrow_mut_component::<Size>(self.source)
+            .get_mut::<Size>(self.source)
         {
             comp.width += 1;
             comp.height += 1;
@@ -34,8 +34,8 @@ impl System<EntityStore, ComponentStore> for PrintSystem {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {
-            if let Ok(name) = c_store.borrow_component::<Name>(*entity) {
-                if let Ok(size) = c_store.borrow_component::<Size>(*entity) {
+            if let Ok(name) = c_store.get::<Name>(*entity) {
+                if let Ok(size) = c_store.get::<Size>(*entity) {
                     println!(
                         "entity: {}; name: {}; width: {}; height: {}",
                         entity.0, name.0, size.width, size.height

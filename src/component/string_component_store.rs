@@ -194,7 +194,7 @@ impl StringComponentStore {
 
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_component<C: Component>(
+    pub fn get<C: Component>(
         &self,
         key: &str,
         entity: Entity,
@@ -210,7 +210,7 @@ impl StringComponentStore {
                     en.get(key)
                         .map(|component| {
                             component.downcast_ref().expect(
-                                "StringComponentStore.borrow_component: internal downcast error",
+                                "StringComponentStore.get: internal downcast error",
                             )
                         })
                         .ok_or_else(|| NotFound::ComponentKey(key.into()))
@@ -221,7 +221,7 @@ impl StringComponentStore {
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_mut_component<C: Component>(
+    pub fn get_mut<C: Component>(
         &mut self,
         key: &str,
         entity: Entity,
@@ -237,7 +237,7 @@ impl StringComponentStore {
                     en.get_mut(key)
                         .map(|component| {
                             component.downcast_mut().expect(
-                            "StringComponentStore.borrow_mut_component: internal downcast error",
+                            "StringComponentStore.get_mut: internal downcast error",
                         )
                         })
                         .ok_or_else(|| NotFound::ComponentKey(key.into()))
@@ -299,7 +299,7 @@ mod tests {
         store.register_entity(entity);
         store.register_component("test", entity, component);
 
-        assert!(store.borrow_component::<String>("test", entity).is_ok());
+        assert!(store.get::<String>("test", entity).is_ok());
     }
 
     #[test]
@@ -325,8 +325,8 @@ mod tests {
         store.register_component("test", entity, component);
         store.register_shared_component::<String>("test", target, entity);
 
-        assert!(store.borrow_component::<String>("test", entity).is_ok());
-        assert!(store.borrow_component::<String>("test", target).is_ok());
+        assert!(store.get::<String>("test", entity).is_ok());
+        assert!(store.get::<String>("test", target).is_ok());
         assert!(store.is_origin::<String>("test", entity));
         assert!(!store.is_origin::<String>("test", target));
     }

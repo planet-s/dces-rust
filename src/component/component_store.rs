@@ -194,7 +194,7 @@ impl TypeComponentStore {
 
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_component<C: Component>(&self, entity: Entity) -> Result<&C, NotFound> {
+    pub fn get<C: Component>(&self, entity: Entity) -> Result<&C, NotFound> {
         let target_entity = self.target_entity::<C>(entity);
 
         match target_entity {
@@ -206,7 +206,7 @@ impl TypeComponentStore {
                     en.get(&TypeId::of::<C>())
                         .map(|component| {
                             component.downcast_ref().expect(
-                                "EntityComponentManager.borrow_component: internal downcast error",
+                                "EntityComponentManager.get: internal downcast error",
                             )
                         })
                         .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
@@ -217,7 +217,7 @@ impl TypeComponentStore {
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn borrow_mut_component<C: Component>(
+    pub fn get_mut<C: Component>(
         &mut self,
         entity: Entity,
     ) -> Result<&mut C, NotFound> {
@@ -232,7 +232,7 @@ impl TypeComponentStore {
                     en.get_mut(&TypeId::of::<C>())
                         .map(|component| {
                             component.downcast_mut().expect(
-                            "EntityComponentManager.borrow_mut_component: internal downcast error",
+                            "EntityComponentManager.get_mut: internal downcast error",
                         )
                         })
                         .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
@@ -314,7 +314,7 @@ mod tests {
         store.register_entity(entity);
         store.register_component(entity, component);
 
-        assert!(store.borrow_component::<String>(entity).is_ok());
+        assert!(store.get::<String>(entity).is_ok());
     }
 
     #[test]
@@ -340,8 +340,8 @@ mod tests {
         store.register_component(entity, component);
         store.register_shared_component::<String>(target, entity);
 
-        assert!(store.borrow_component::<String>(entity).is_ok());
-        assert!(store.borrow_component::<String>(target).is_ok());
+        assert!(store.get::<String>(entity).is_ok());
+        assert!(store.get::<String>(target).is_ok());
         assert!(store.is_origin::<String>(entity));
         assert!(!store.is_origin::<String>(target));
     }
@@ -355,7 +355,7 @@ mod tests {
         store.register_entity(entity);
         store.register_component_box(entity, ComponentBox::new(component));
 
-        assert!(store.borrow_component::<String>(entity).is_ok());
+        assert!(store.get::<String>(entity).is_ok());
     }
 
     #[test]
@@ -371,8 +371,8 @@ mod tests {
             target,
             SharedComponentBox::new(TypeId::of::<String>(), entity),
         );
-        assert!(store.borrow_component::<String>(entity).is_ok());
-        assert!(store.borrow_component::<String>(target).is_ok());
+        assert!(store.get::<String>(entity).is_ok());
+        assert!(store.get::<String>(target).is_ok());
         assert!(store.is_origin::<String>(entity));
         assert!(!store.is_origin::<String>(target));
     }

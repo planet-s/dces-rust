@@ -32,7 +32,7 @@
 //!        let (e_store, c_store) = ecm.stores();
 //!
 //!        for entity in &e_store.inner {
-//!            if let Ok(comp) = c_store.borrow_component::<Name>(*entity) {
+//!            if let Ok(comp) = c_store.get::<Name>(*entity) {
 //!                println!("{}", comp.value);
 //!            }
 //!        }

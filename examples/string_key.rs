@@ -12,11 +12,11 @@ impl System<EntityStore, StringComponentStore> for PrintSystem {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {
-            if let Ok(header) = c_store.borrow_component::<String>("header", *entity) {
+            if let Ok(header) = c_store.get::<String>("header", *entity) {
                 println!("{}", header);
             }
 
-            if let Ok(content) = c_store.borrow_component::<String>("content", *entity) {
+            if let Ok(content) = c_store.get::<String>("content", *entity) {
                 println!("{}", content);
             }
         }
