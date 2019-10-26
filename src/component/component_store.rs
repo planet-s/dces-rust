@@ -171,7 +171,8 @@ impl TypeComponentStore {
             .get(&entity)
             .ok_or_else(|| NotFound::Entity(entity))
             .and_then(|en| {
-               en.get(&TypeId::of::<C>()).copied()
+                en.get(&TypeId::of::<C>())
+                    .copied()
                     .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
             })
     }
@@ -200,9 +201,9 @@ impl TypeComponentStore {
                 .and_then(|en| {
                     en.get(&TypeId::of::<C>())
                         .map(|component| {
-                            component.downcast_ref().expect(
-                                "EntityComponentManager.get: internal downcast error",
-                            )
+                            component
+                                .downcast_ref()
+                                .expect("EntityComponentManager.get: internal downcast error")
                         })
                         .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
                 }),
@@ -212,10 +213,7 @@ impl TypeComponentStore {
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn get_mut<C: Component>(
-        &mut self,
-        entity: Entity,
-    ) -> Result<&mut C, NotFound> {
+    pub fn get_mut<C: Component>(&mut self, entity: Entity) -> Result<&mut C, NotFound> {
         let target_entity = self.target_entity::<C>(entity);
 
         match target_entity {
@@ -226,9 +224,9 @@ impl TypeComponentStore {
                 .and_then(|en| {
                     en.get_mut(&TypeId::of::<C>())
                         .map(|component| {
-                            component.downcast_mut().expect(
-                            "EntityComponentManager.get_mut: internal downcast error",
-                        )
+                            component
+                                .downcast_mut()
+                                .expect("EntityComponentManager.get_mut: internal downcast error")
                         })
                         .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
                 }),

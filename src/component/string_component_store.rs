@@ -173,7 +173,8 @@ impl StringComponentStore {
             .get(&entity)
             .ok_or_else(|| NotFound::Entity(entity))
             .and_then(|en| {
-                en.get(&key).copied()
+                en.get(&key)
+                    .copied()
                     .ok_or_else(|| NotFound::ComponentKey(key))
             })
     }
@@ -190,11 +191,7 @@ impl StringComponentStore {
 
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn get<C: Component>(
-        &self,
-        key: &str,
-        entity: Entity,
-    ) -> Result<&C, NotFound> {
+    pub fn get<C: Component>(&self, key: &str, entity: Entity) -> Result<&C, NotFound> {
         let target_entity = self.target_entity(entity, key);
 
         match target_entity {
@@ -205,9 +202,9 @@ impl StringComponentStore {
                 .and_then(|en| {
                     en.get(key)
                         .map(|component| {
-                            component.downcast_ref().expect(
-                                "StringComponentStore.get: internal downcast error",
-                            )
+                            component
+                                .downcast_ref()
+                                .expect("StringComponentStore.get: internal downcast error")
                         })
                         .ok_or_else(|| NotFound::ComponentKey(key.into()))
                 }),
@@ -217,11 +214,7 @@ impl StringComponentStore {
 
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
-    pub fn get_mut<C: Component>(
-        &mut self,
-        key: &str,
-        entity: Entity,
-    ) -> Result<&mut C, NotFound> {
+    pub fn get_mut<C: Component>(&mut self, key: &str, entity: Entity) -> Result<&mut C, NotFound> {
         let target_entity = self.target_entity(entity, key);
 
         match target_entity {
@@ -232,9 +225,9 @@ impl StringComponentStore {
                 .and_then(|en| {
                     en.get_mut(key)
                         .map(|component| {
-                            component.downcast_mut().expect(
-                            "StringComponentStore.get_mut: internal downcast error",
-                        )
+                            component
+                                .downcast_mut()
+                                .expect("StringComponentStore.get_mut: internal downcast error")
                         })
                         .ok_or_else(|| NotFound::ComponentKey(key.into()))
                 }),

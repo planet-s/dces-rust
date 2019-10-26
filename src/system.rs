@@ -149,10 +149,9 @@ where
         &self,
         entity_system_id: u32,
     ) -> Result<&EntitySystem<E, C>, NotFound> {
-        self.entity_systems.get(&entity_system_id).map_or_else(
-            || Err(NotFound::EntitySystem(entity_system_id)),
-            Ok,
-        )
+        self.entity_systems
+            .get(&entity_system_id)
+            .map_or_else(|| Err(NotFound::EntitySystem(entity_system_id)), Ok)
     }
 
     /// Returns a reference of the init entity system. If the init entity system does not exists `None` will be returned.

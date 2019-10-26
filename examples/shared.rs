@@ -18,10 +18,7 @@ pub struct SizeSystem {
 
 impl System<EntityStore, ComponentStore> for SizeSystem {
     fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
-        if let Ok(comp) = ecm
-            .component_store_mut()
-            .get_mut::<Size>(self.source)
-        {
+        if let Ok(comp) = ecm.component_store_mut().get_mut::<Size>(self.source) {
             comp.width += 1;
             comp.height += 1;
         }
