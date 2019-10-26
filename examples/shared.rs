@@ -16,11 +16,11 @@ pub struct SizeSystem {
     source: Entity,
 }
 
-impl System<VecEntityStore> for SizeSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<EntityStore, ComponentStore> for SizeSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         if let Ok(comp) = ecm
             .component_store_mut()
-            .borrow_mut_component::<Size>(self.source)
+            .get_mut::<Size>(self.source)
         {
             comp.width += 1;
             comp.height += 1;
@@ -29,13 +29,13 @@ impl System<VecEntityStore> for SizeSystem {
 }
 
 pub struct PrintSystem;
-impl System<VecEntityStore> for PrintSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<EntityStore, ComponentStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {
-            if let Ok(name) = c_store.borrow_component::<Name>(*entity) {
-                if let Ok(size) = c_store.borrow_component::<Size>(*entity) {
+            if let Ok(name) = c_store.get::<Name>(*entity) {
+                if let Ok(size) = c_store.get::<Size>(*entity) {
                     println!(
                         "entity: {}; name: {}; width: {}; height: {}",
                         entity.0, name.0, size.width, size.height
@@ -47,23 +47,31 @@ impl System<VecEntityStore> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityStore>::new();
+    let mut world = World::<EntityStore, ComponentStore>::new();
 
     let source = world
         .create_entity()
-        .with(Name(String::from("Button")))
-        .with(Depth(4))
-        .with(Size {
-            width: 5,
-            height: 5,
-        })
+        .components(
+            ComponentBuilder::new()
+                .with(Name(String::from("Button")))
+                .with(Depth(4))
+                .with(Size {
+                    width: 5,
+                    height: 5,
+                })
+                .build(),
+        )
         .build();
 
     world
         .create_entity()
-        .with(Name(String::from("CheckBox")))
-        .with(Depth(1))
-        .with_shared::<Size>(source)
+        .components(
+            ComponentBuilder::new()
+                .with(Name(String::from("CheckBox")))
+                .with(Depth(1))
+                .with_shared::<Size>(source)
+                .build(),
+        )
         .build();
 
     world.create_system(PrintSystem).with_priority(1).build();

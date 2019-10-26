@@ -11,6 +11,8 @@ pub enum NotFound {
     Component(TypeId),
     /// EntitySystem could not be found
     EntitySystem(u32),
+    /// Component key could not be found
+    ComponentKey(String),
     /// Unknown error
     Unknown(String),
 }

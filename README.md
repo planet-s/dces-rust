@@ -15,7 +15,7 @@ The goal of DCES is a lightweight ECS library with zero dependencies used by UI 
 * Share components between entities
 * Register systems and read / write components of entities
 * Order systems execution by priority
-* Register container for entity organisation (Vec, HashMap, Custom Container, ...)
+* Register container for entity organization (Vec, HashMap, Custom Container, ...)
 * Register init and cleanup system
 
 ## Usage
@@ -40,14 +40,18 @@ dces = { git = https://gitlab.redox-os.org/redox-os/dces-rust.git }
 use dces::prelude::*;
 
 #[derive(Default)]
-struct Name { value: String }
+struct Name {
+    value: String,
+}
 
 struct PrintSystem;
 
-impl System<VecEntityStore> for PrintSystem {
-    fn run(&self, entities: &VecEntityStore, ecm: &mut EntityComponentManager) {
-        for entity in &entities.inner {
-            if let Ok(comp) = ecm.borrow_component::<Name>(*entity) {
+impl System<EntityStore, ComponentStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
+        let (e_store, c_store) = ecm.stores();
+
+        for entity in &e_store.inner {
+            if let Ok(comp) = c_store.get::<Name>(*entity) {
                 println!("{}", comp.value);
             }
         }
@@ -55,11 +59,20 @@ impl System<VecEntityStore> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::<VecEntityStore>::new();
+    let mut world = World::<EntityStore, ComponentStore>::new();
 
-    world.create_entity().with(Name { value: String::from("DCES") }).build();
+    world
+        .create_entity()
+        .components(
+            ComponentBuilder::new()
+                .with(Name {
+                    value: String::from("DCES"),
+                })
+                .build(),
+        )
+        .build();
+
     world.create_system(PrintSystem).build();
-
     world.run();
 }
 ```
@@ -72,7 +85,7 @@ You can start the `basic` example by executing the following command:
 cargo run --example basic
 ```
 
-## Build and run documenation
+## Build and run documentation
 
 You can build and run the latest documentation by executing the following command:
 
@@ -96,3 +109,7 @@ cargo doc --no-deps --open
 ### Why not Specs
 Because DCES is developed to fulfill the requirements of OrbTk. To reduce the dependency tree of OrbTk
 DCES depends on zero crates.
+
+## License
+
+Licensed under MIT license ([LICENSE](LICENSE)).

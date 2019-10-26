@@ -4,12 +4,12 @@ use dces::prelude::*;
 struct Counter(u32);
 
 struct UpdateSystem;
-impl System<VecEntityStore> for UpdateSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<EntityStore, ComponentStore> for UpdateSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
-            if let Ok(comp) = c_store.borrow_mut_component::<Counter>(*entity) {
+            if let Ok(comp) = c_store.get_mut::<Counter>(*entity) {
                 comp.0 += 1;
             }
         }
@@ -17,12 +17,12 @@ impl System<VecEntityStore> for UpdateSystem {
 }
 
 struct TestUpdateSystem(u32);
-impl System<VecEntityStore> for TestUpdateSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<VecEntityStore>) {
+impl System<EntityStore, ComponentStore> for TestUpdateSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
-            if let Ok(comp) = c_store.borrow_mut_component::<Counter>(*entity) {
+            if let Ok(comp) = c_store.get_mut::<Counter>(*entity) {
                 assert_eq!(comp.0, self.0);
             }
         }
@@ -31,10 +31,16 @@ impl System<VecEntityStore> for TestUpdateSystem {
 
 #[test]
 fn test_update() {
-    let mut world = World::<VecEntityStore>::new();
+    let mut world = World::<EntityStore, ComponentStore>::new();
 
-    world.create_entity().with(Counter(0)).build();
-    world.create_entity().with(Counter(0)).build();
+    world
+        .create_entity()
+        .components(ComponentBuilder::new().with(Counter(0)).build())
+        .build();
+    world
+        .create_entity()
+        .components(ComponentBuilder::new().with(Counter(0)).build())
+        .build();
 
     world.create_system(UpdateSystem).with_priority(0).build();
     world
