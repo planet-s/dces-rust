@@ -73,13 +73,8 @@ impl ComponentStore for TypeComponentStore {
 
     fn register_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
-        if !self.components.contains_key(&entity) {
-            self.components.insert(entity, HashMap::new());
-        }
-
-        if !self.shared.contains_key(&entity) {
-            self.shared.insert(entity, HashMap::new());
-        }
+        self.components.entry(entity).or_insert(HashMap::new());
+        self.shared.entry(entity).or_insert(HashMap::new());
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {
