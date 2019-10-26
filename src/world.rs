@@ -114,7 +114,7 @@ where
         }
 
         let priorities = &self.system_store.priorities;
-        for (_, priority) in priorities {
+        for priority in priorities.values() {
             for system in priority {
                 self.system_store
                     .borrow_entity_system(*system)

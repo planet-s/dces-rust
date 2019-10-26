@@ -73,8 +73,8 @@ impl ComponentStore for TypeComponentStore {
 
     fn register_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
-        self.components.entry(entity).or_insert(HashMap::new());
-        self.shared.entry(entity).or_insert(HashMap::new());
+        self.components.entry(entity).or_insert_with(HashMap::new);
+        self.shared.entry(entity).or_insert_with(HashMap::new);
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {
@@ -93,7 +93,7 @@ impl TypeComponentStore {
 
     /// Registers a sharing of the given component between the given entities.
     pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
-        self.shared.entry(target).or_insert(HashMap::new());
+        self.shared.entry(target).or_insert_with(HashMap::new);
 
         // Removes unshared component of entity.
         if let Some(comp) = self.components.get_mut(&target) {
@@ -113,7 +113,7 @@ impl TypeComponentStore {
         source: SharedComponentBox,
     ) {
         let target = target.into();
-        self.shared.entry(target).or_insert(HashMap::new());
+        self.shared.entry(target).or_insert_with(HashMap::new);
 
         // Removes unshared component of entity.
         if let Some(comp) = self.components.get_mut(&target) {

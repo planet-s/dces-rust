@@ -17,7 +17,7 @@
 //!
 //! # Example
 //!
-//! ```rust
+//! ```rust,no_run
 //! use dces::prelude::*;
 //!
 //! #[derive(Default)]

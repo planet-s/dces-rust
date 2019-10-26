@@ -58,13 +58,9 @@ impl ComponentStore for StringComponentStore {
 
     fn register_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
-        if !self.components.contains_key(&entity) {
-            self.components.insert(entity, HashMap::new());
-        }
 
-        if !self.shared.contains_key(&entity) {
-            self.shared.insert(entity, HashMap::new());
-        }
+        self.components.entry(entity).or_insert_with(HashMap::new);
+        self.shared.entry(entity).or_insert_with(HashMap::new);
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {
@@ -93,7 +89,7 @@ impl StringComponentStore {
         target: Entity,
         source: Entity,
     ) {
-        self.shared.entry(target).or_insert(HashMap::new());
+        self.shared.entry(target).or_insert_with(HashMap::new);
 
         let key = key.into();
 
@@ -112,7 +108,7 @@ impl StringComponentStore {
         target: Entity,
         source: SharedComponentBox,
     ) {
-        self.shared.entry(target).or_insert(HashMap::new());
+        self.shared.entry(target).or_insert_with(HashMap::new);
 
         let key = key.into();
 

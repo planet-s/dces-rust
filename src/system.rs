@@ -151,7 +151,7 @@ where
     ) -> Result<&EntitySystem<E, C>, NotFound> {
         self.entity_systems.get(&entity_system_id).map_or_else(
             || Err(NotFound::EntitySystem(entity_system_id)),
-            |es| Ok(es),
+            Ok,
         )
     }
 
