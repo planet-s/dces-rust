@@ -116,7 +116,7 @@ where
     pub fn new(entity_store: E, component_store: C) -> Self {
         EntityComponentManager {
             entity_counter: 0,
-            component_store: component_store,
+            component_store,
             entity_store,
         }
     }

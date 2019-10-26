@@ -74,11 +74,11 @@ impl ComponentStore for TypeComponentStore {
     fn register_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
         if !self.components.contains_key(&entity) {
-            self.components.insert(entity.into(), HashMap::new());
+            self.components.insert(entity, HashMap::new());
         }
 
         if !self.shared.contains_key(&entity) {
-            self.shared.insert(entity.into(), HashMap::new());
+            self.shared.insert(entity, HashMap::new());
         }
     }
 
@@ -98,9 +98,7 @@ impl TypeComponentStore {
 
     /// Registers a sharing of the given component between the given entities.
     pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
-        if !self.shared.contains_key(&target) {
-            self.shared.insert(target, HashMap::new());
-        }
+        self.shared.entry(target).or_insert(HashMap::new());
 
         // Removes unshared component of entity.
         if let Some(comp) = self.components.get_mut(&target) {
@@ -120,9 +118,7 @@ impl TypeComponentStore {
         source: SharedComponentBox,
     ) {
         let target = target.into();
-        if !self.shared.contains_key(&target) {
-            self.shared.insert(target, HashMap::new());
-        }
+        self.shared.entry(target).or_insert(HashMap::new());
 
         // Removes unshared component of entity.
         if let Some(comp) = self.components.get_mut(&target) {
@@ -155,9 +151,14 @@ impl TypeComponentStore {
         self.components.len()
     }
 
+    /// Returns true if the compents are empty.
+    pub fn is_empty(&self) -> bool {
+        self.components.is_empty()
+    }
+
     /// Returns `true` if the store contains the specific entity.
-    pub fn contains_entity(&self, entity: &Entity) -> bool {
-        self.components.contains_key(entity)
+    pub fn contains_entity(&self, entity: Entity) -> bool {
+        self.components.contains_key(&entity)
     }
 
     /// Returns `true` if entity is the origin of the requested component `false`.
@@ -175,8 +176,7 @@ impl TypeComponentStore {
             .get(&entity)
             .ok_or_else(|| NotFound::Entity(entity))
             .and_then(|en| {
-                en.get(&TypeId::of::<C>())
-                    .map(|entity| *entity)
+               en.get(&TypeId::of::<C>()).copied()
                     .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
             })
     }
