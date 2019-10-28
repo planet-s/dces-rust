@@ -40,7 +40,7 @@
 //! }
 //!
 //!
-//! let mut world = World::<EntityStore, ComponentStore>::new();
+//! let mut world = World::from_stores(EntityStore::default(), ComponentStore::default());
 //!
 //! world
 //!     .create_entity()

@@ -11,9 +11,6 @@ pub use self::string_component_store::*;
 mod component_store;
 mod string_component_store;
 
-#[cfg(test)]
-mod tests;
-
 /// The entity builder is used to create an entity with components.
 pub struct EntityBuilder<'a, E, C>
 where
@@ -42,7 +39,7 @@ where
     /// Finishing the creation of the entity.
     pub fn build(self) -> Entity {
         self.entity_store.register_entity(self.entity);
-        self.component_store.register_entity(self.entity);
+        // self.component_store.register_entity(self.entity);
         self.entity
     }
 }
@@ -167,7 +164,7 @@ where
     pub fn register_entity(&mut self, entity: impl Into<Entity>) {
         let entity = entity.into();
         self.entity_store.register_entity(entity);
-        self.component_store.register_entity(entity);
+        // self.component_store.register_entity(entity);
     }
 
     /// Removes a `entity` from the manager.
@@ -184,8 +181,8 @@ pub trait ComponentStore {
 
     fn append(&mut self, entity: Entity, components: Self::Components);
 
-    /// Registers an new entity on the store.
-    fn register_entity(&mut self, entity: impl Into<Entity>);
+    // /// Registers an new entity on the store.
+    // fn register_entity(&mut self, entity: impl Into<Entity>);
 
     /// Removes and entity from the store.
     fn remove_entity(&mut self, entity: impl Into<Entity>);

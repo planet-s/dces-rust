@@ -54,31 +54,45 @@ impl TypeComponentBuilder {
 /// borrow the components of the entities.
 #[derive(Default, Debug)]
 pub struct TypeComponentStore {
-    components: HashMap<Entity, HashMap<TypeId, Box<dyn Any>>>,
-    shared: HashMap<Entity, HashMap<TypeId, Entity>>,
+    components: HashMap<(Entity, TypeId), Box<dyn Any>>,
+    shared: HashMap<(Entity, TypeId), Entity>,
 }
 
 impl ComponentStore for TypeComponentStore {
     type Components = (HashMap<TypeId, Box<dyn Any>>, HashMap<TypeId, Entity>);
 
     fn append(&mut self, entity: Entity, components: Self::Components) {
-        self.register_entity(entity);
         for (key, value) in components.0 {
-            self.components.get_mut(&entity).unwrap().insert(key, value);
+            self.components.insert((entity, key), value);
         }
         for (key, value) in components.1 {
-            self.shared.get_mut(&entity).unwrap().insert(key, value);
+            self.shared.insert((entity, key), value);
         }
-    }
-
-    fn register_entity(&mut self, entity: impl Into<Entity>) {
-        let entity = entity.into();
-        self.components.entry(entity).or_insert_with(HashMap::new);
-        self.shared.entry(entity).or_insert_with(HashMap::new);
     }
 
     fn remove_entity(&mut self, entity: impl Into<Entity>) {
-        self.components.remove(&entity.into());
+        let entity = entity.into();
+        let keys: Vec<(Entity, TypeId)> = self
+            .components
+            .iter()
+            .filter(|&(k, _)| k.0 == entity)
+            .map(|(k, _)| *k)
+            .collect();
+
+        for k in keys {
+            self.components.remove(&k);
+        }
+
+        let keys: Vec<(Entity, TypeId)> = self
+            .shared
+            .iter()
+            .filter(|&(k, _)| k.0 == entity)
+            .map(|(k, _)| *k)
+            .collect();
+
+        for k in keys {
+            self.shared.remove(&k);
+        }
     }
 }
 
@@ -86,24 +100,14 @@ impl TypeComponentStore {
     /// Register a `component` for the given `entity`.
     pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
         self.components
-            .get_mut(&entity)
-            .get_or_insert(&mut HashMap::new())
-            .insert(TypeId::of::<C>(), Box::new(component));
+            .insert((entity, TypeId::of::<C>()), Box::new(component));
     }
 
     /// Registers a sharing of the given component between the given entities.
     pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
-        self.shared.entry(target).or_insert_with(HashMap::new);
-
-        // Removes unshared component of entity.
-        if let Some(comp) = self.components.get_mut(&target) {
-            comp.remove(&TypeId::of::<C>());
-        }
-
-        self.shared
-            .get_mut(&target)
-            .unwrap()
-            .insert(TypeId::of::<C>(), source);
+        let target_key = (target, TypeId::of::<C>());
+        self.components.remove(&target_key);
+        self.shared.insert(target_key, source);
     }
 
     /// Registers a sharing of the given component between the given entities.
@@ -112,18 +116,9 @@ impl TypeComponentStore {
         target: impl Into<Entity>,
         source: SharedComponentBox,
     ) {
-        let target = target.into();
-        self.shared.entry(target).or_insert_with(HashMap::new);
-
-        // Removes unshared component of entity.
-        if let Some(comp) = self.components.get_mut(&target) {
-            comp.remove(&source.type_id);
-        }
-
-        self.shared
-            .get_mut(&target)
-            .unwrap()
-            .insert(source.type_id, source.source);
+        let target_key = (target.into(), source.type_id);
+        self.components.remove(&target_key);
+        self.shared.insert(target_key, source.source);
     }
 
     /// Register a `component_box` for the given `entity`.
@@ -135,10 +130,7 @@ impl TypeComponentStore {
         let entity = entity.into();
         let (type_id, component) = component_box.consume();
 
-        self.components
-            .get_mut(&entity)
-            .get_or_insert(&mut HashMap::new())
-            .insert(type_id, component);
+        self.components.insert((entity, type_id), component);
     }
 
     /// Returns the number of components in the store.
@@ -146,43 +138,33 @@ impl TypeComponentStore {
         self.components.len()
     }
 
-    /// Returns true if the compents are empty.
+    /// Returns true if the components are empty.
     pub fn is_empty(&self) -> bool {
         self.components.is_empty()
     }
 
     /// Returns `true` if the store contains the specific entity.
     pub fn contains_entity(&self, entity: Entity) -> bool {
-        self.components.contains_key(&entity)
+        self.components.iter().any(|(k, _)| k.0 == entity)
     }
 
     /// Returns `true` if entity is the origin of the requested component `false`.
     pub fn is_origin<C: Component>(&self, entity: Entity) -> bool {
-        if let Some(components) = self.components.get(&entity) {
-            return components.contains_key(&TypeId::of::<C>());
-        }
-
-        false
+        self.components.contains_key(&(entity, TypeId::of::<C>()))
     }
 
-    // Search the the target entity in the entity map.
-    fn target_entity_from_shared<C: Component>(&self, entity: Entity) -> Result<Entity, NotFound> {
+    // Search the the source in the entity map.
+    fn source_from_shared<C: Component>(&self, entity: Entity) -> Result<Entity, NotFound> {
         self.shared
-            .get(&entity)
+            .get(&(entity, TypeId::of::<C>()))
             .ok_or_else(|| NotFound::Entity(entity))
-            .and_then(|en| {
-                en.get(&TypeId::of::<C>())
-                    .copied()
-                    .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
-            })
+            .map(|s| *s)
     }
 
-    // Returns the target entity. First search in entities map. If not found search in shared entity map.
-    fn target_entity<C: Component>(&self, entity: Entity) -> Result<Entity, NotFound> {
-        if !self.components.contains_key(&entity)
-            || !self.components[&entity].contains_key(&TypeId::of::<C>())
-        {
-            return self.target_entity_from_shared::<C>(entity);
+    // Returns the source. First search in entities map. If not found search in shared entity map.
+    fn source<C: Component>(&self, entity: Entity) -> Result<Entity, NotFound> {
+        if !self.components.contains_key(&(entity, TypeId::of::<C>())) {
+            return self.source_from_shared::<C>(entity);
         }
 
         Result::Ok(entity)
@@ -191,21 +173,17 @@ impl TypeComponentStore {
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
     pub fn get<C: Component>(&self, entity: Entity) -> Result<&C, NotFound> {
-        let target_entity = self.target_entity::<C>(entity);
+        let source = self.source::<C>(entity);
 
-        match target_entity {
+        match source {
             Ok(entity) => self
                 .components
-                .get(&entity)
+                .get(&(entity, TypeId::of::<C>()))
                 .ok_or_else(|| NotFound::Entity(entity))
-                .and_then(|en| {
-                    en.get(&TypeId::of::<C>())
-                        .map(|component| {
-                            component
-                                .downcast_ref()
-                                .expect("EntityComponentManager.get: internal downcast error")
-                        })
-                        .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
+                .map(|component| {
+                    component
+                        .downcast_ref()
+                        .expect("EntityComponentManager.get: internal downcast error")
                 }),
             Err(_) => Result::Err(NotFound::Entity(entity)),
         }
@@ -214,21 +192,17 @@ impl TypeComponentStore {
     /// Returns a mutable reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
     pub fn get_mut<C: Component>(&mut self, entity: Entity) -> Result<&mut C, NotFound> {
-        let target_entity = self.target_entity::<C>(entity);
+        let source = self.source::<C>(entity);
 
-        match target_entity {
+        match source {
             Ok(entity) => self
                 .components
-                .get_mut(&entity)
+                .get_mut(&(entity, TypeId::of::<C>()))
                 .ok_or_else(|| NotFound::Entity(entity))
-                .and_then(|en| {
-                    en.get_mut(&TypeId::of::<C>())
-                        .map(|component| {
-                            component
-                                .downcast_mut()
-                                .expect("EntityComponentManager.get_mut: internal downcast error")
-                        })
-                        .ok_or_else(|| NotFound::Component(TypeId::of::<C>()))
+                .map(|component| {
+                    component
+                        .downcast_mut()
+                        .expect("EntityComponentManager.get_mut: internal downcast error")
                 }),
             Err(_) => Result::Err(NotFound::Entity(entity)),
         }
@@ -280,19 +254,10 @@ mod tests {
     }
 
     #[test]
-    fn register_entity() {
-        let mut store = TypeComponentStore::default();
-        let entity = Entity::from(1);
-        store.register_entity(entity);
-
-        assert!(store.contains_entity(entity));
-    }
-
-    #[test]
     fn remove_entity() {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
-        store.register_entity(entity);
+        store.register_component(entity, String::from("Test"));
         store.remove_entity(entity);
 
         assert!(!store.contains_entity(entity));
@@ -304,7 +269,6 @@ mod tests {
         let entity = Entity::from(1);
         let component = String::from("Test");
 
-        store.register_entity(entity);
         store.register_component(entity, component);
 
         assert!(store.get::<String>(entity).is_ok());
@@ -315,11 +279,10 @@ mod tests {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
 
-        store.register_entity(entity);
         store.register_component(entity, String::from("Test"));
         store.register_component(entity, 5 as f64);
 
-        assert_eq!(store.len(), 1);
+        assert_eq!(store.len(), 2);
     }
 
     #[test]
@@ -329,7 +292,6 @@ mod tests {
         let target = Entity::from(2);
         let component = String::from("Test");
 
-        store.register_entity(entity);
         store.register_component(entity, component);
         store.register_shared_component::<String>(target, entity);
 
@@ -345,7 +307,6 @@ mod tests {
         let entity = Entity::from(1);
         let component = String::from("Test");
 
-        store.register_entity(entity);
         store.register_component_box(entity, ComponentBox::new(component));
 
         assert!(store.get::<String>(entity).is_ok());
@@ -358,7 +319,6 @@ mod tests {
         let target = Entity::from(2);
         let component = String::from("Test");
 
-        store.register_entity(entity);
         store.register_component(entity, component);
         store.register_shared_component_box(
             target,
