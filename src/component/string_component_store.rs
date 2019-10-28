@@ -283,7 +283,7 @@ mod tests {
         store.register_component("test", entity, String::from("Test"));
         store.register_component("test", entity, 5 as f64);
 
-        assert_eq!(store.len(), 1);
+        assert_eq!(store.len(), 2);
     }
 
     #[test]
