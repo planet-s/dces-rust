@@ -285,7 +285,7 @@ mod tests {
         let entity = Entity::from(1);
         store.register_entity(entity);
 
-        assert!(store.contains_entity(&entity));
+        assert!(store.contains_entity(entity));
     }
 
     #[test]
@@ -295,7 +295,7 @@ mod tests {
         store.register_entity(entity);
         store.remove_entity(entity);
 
-        assert!(!store.contains_entity(&entity));
+        assert!(!store.contains_entity(entity));
     }
 
     #[test]
