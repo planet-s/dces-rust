@@ -75,7 +75,7 @@ impl ComponentStore for TypeComponentStore {
         let keys: Vec<(Entity, TypeId)> = self
             .components
             .iter()
-            .filter(|&(k, _)| k.0 == entity.into())
+            .filter(|&(k, _)| k.0 == entity)
             .map(|(k, _)| *k)
             .collect();
         let _ = keys.iter().map(|k| self.components.remove(k));
@@ -83,7 +83,7 @@ impl ComponentStore for TypeComponentStore {
         let keys: Vec<(Entity, TypeId)> = self
             .shared
             .iter()
-            .filter(|&(k, _)| k.0 == entity.into())
+            .filter(|&(k, _)| k.0 == entity)
             .map(|(k, _)| *k)
             .collect();
 
