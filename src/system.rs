@@ -134,7 +134,10 @@ where
     /// Register a `priority` for the system with the given `system_id`.
     pub fn register_priority(&mut self, priority: Priority, system_id: u32) {
         self.entity_systems.get_mut(&system_id).unwrap().priority = priority;
-        self.priorities.entry(priority).or_insert_with(|| vec![]).push(system_id);
+        self.priorities
+            .entry(priority)
+            .or_insert_with(|| vec![])
+            .push(system_id);
     }
 
     /// Returns a reference of a entity system. If the entity system does not exists `NotFound` will be returned.

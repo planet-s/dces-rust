@@ -39,7 +39,7 @@
 //!    }
 //! }
 //!
-//! 
+//!
 //! let mut world = World::<EntityStore, ComponentStore>::new();
 //!
 //! world
@@ -55,7 +55,7 @@
 //!
 //! world.create_system(PrintSystem).build();
 //! world.run();
-//! 
+//!
 //!
 //! ```
 pub mod component;
