@@ -46,11 +46,6 @@ where
     E: EntityStore,
     C: ComponentStore,
 {
-    /// Creates a new world the a vector based entity container.
-    pub fn new() -> World<VecEntityStore, TypeComponentStore> {
-        World::from_stores(VecEntityStore::default(), TypeComponentStore::default())
-    }
-
     /// Creates a new world from the given container.
     pub fn from_stores(entity_store: E, component_store: C) -> Self {
         World {

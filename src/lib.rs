@@ -17,7 +17,7 @@
 //!
 //! # Example
 //!
-//! ```rust,no_run
+//! ```no_run
 //! use dces::prelude::*;
 //!
 //! #[derive(Default)]
@@ -39,23 +39,23 @@
 //!    }
 //! }
 //!
-//! fn main() {
-//!     let mut world = World::<EntityStore, ComponentStore>::new();
+//! 
+//! let mut world = World::<EntityStore, ComponentStore>::new();
 //!
-//!     world
-//!         .create_entity()
-//!         .components(
-//!             ComponentBuilder::new()
-//!                 .with(Name {
-//!                     value: String::from("DCES"),
-//!                 })
-//!                 .build(),
-//!         )
-//!         .build();
+//! world
+//!     .create_entity()
+//!     .components(
+//!         ComponentBuilder::new()
+//!             .with(Name {
+//!                 value: String::from("DCES"),
+//!             })
+//!             .build(),
+//!     )
+//!     .build();
 //!
-//!     world.create_system(PrintSystem).build();
-//!     world.run();
-//! }
+//! world.create_system(PrintSystem).build();
+//! world.run();
+//! 
 //!
 //! ```
 pub mod component;
