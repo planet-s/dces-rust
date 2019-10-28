@@ -8,7 +8,7 @@ use crate::error::NotFound;
 type BuildComponents = HashMap<String, Box<dyn Any>>;
 type BuildSharedComponents = HashMap<String, (Entity, String)>;
 type Components = HashMap<(Entity, String), Box<dyn Any>>;
-type SharedCompoents = HashMap<(Entity, String), (Entity, String)>;
+type SharedComponents = HashMap<(Entity, String), (Entity, String)>;
 
 /// The `StringComponentBuilder` is used to build a set of string key based components.
 #[derive(Default)]
@@ -61,7 +61,7 @@ impl StringComponentBuilder {
 #[derive(Default, Debug)]
 pub struct StringComponentStore {
     components: Components,
-    shared: SharedCompoents,
+    shared: SharedComponents,
 }
 
 impl ComponentStore for StringComponentStore {
