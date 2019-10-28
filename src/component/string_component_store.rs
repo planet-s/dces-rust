@@ -5,6 +5,11 @@ use std::collections::HashMap;
 use super::{Component, ComponentBox, ComponentStore, Entity, SharedComponentBox};
 use crate::error::NotFound;
 
+type BuildComponents = HashMap<String, Box<dyn Any>>;
+type BuildSharedComponents = HashMap<String, (Entity, String)>;
+type Components = HashMap<(Entity, String), Box<dyn Any>>;
+type SharedCompoents = HashMap<(Entity, String), (Entity, String)>;
+
 /// The `StringComponentBuilder` is used to build a set of string key based components.
 #[derive(Default)]
 pub struct StringComponentBuilder {
@@ -44,8 +49,8 @@ impl StringComponentBuilder {
     pub fn build(
         self,
     ) -> (
-        HashMap<String, Box<dyn Any>>,
-        HashMap<String, (Entity, String)>,
+        BuildComponents,
+        BuildSharedComponents,
     ) {
         (self.components, self.shared)
     }
@@ -55,14 +60,14 @@ impl StringComponentBuilder {
 /// borrow the components of the entities.
 #[derive(Default, Debug)]
 pub struct StringComponentStore {
-    components: HashMap<(Entity, String), Box<dyn Any>>,
-    shared: HashMap<(Entity, String), (Entity, String)>,
+    components: Components,
+    shared: SharedCompoents,
 }
 
 impl ComponentStore for StringComponentStore {
     type Components = (
-        HashMap<String, Box<dyn Any>>,
-        HashMap<String, (Entity, String)>,
+        BuildComponents,
+        BuildSharedComponents,
     );
 
     fn append(&mut self, entity: Entity, components: Self::Components) {
@@ -79,7 +84,7 @@ impl ComponentStore for StringComponentStore {
         let keys: Vec<(Entity, String)> = self
             .components
             .iter()
-            .filter(|&(k, _)| k.0 == entity.into())
+            .filter(|&(k, _)| k.0 == entity)
             .map(|(k, _)| k.clone())
             .collect();
 
@@ -90,7 +95,7 @@ impl ComponentStore for StringComponentStore {
         let keys: Vec<(Entity, String)> = self
             .shared
             .iter()
-            .filter(|&(k, _)| k.0 == entity.into())
+            .filter(|&(k, _)| k.0 == entity)
             .map(|(k, _)| k.clone())
             .collect();
 
