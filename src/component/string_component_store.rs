@@ -83,7 +83,9 @@ impl ComponentStore for StringComponentStore {
             .map(|(k, _)| k.clone())
             .collect();
 
-        let _ = keys.iter().map(|k| self.components.remove(k));
+        for k in keys {
+            self.components.remove(&k);
+        }
 
         let keys: Vec<(Entity, String)> = self
             .shared
@@ -92,7 +94,9 @@ impl ComponentStore for StringComponentStore {
             .map(|(k, _)| k.clone())
             .collect();
 
-        let _ = keys.iter().map(|k| self.shared.remove(k));
+        for k in keys {
+            self.shared.remove(&k);
+        }
     }
 }
 
@@ -280,8 +284,8 @@ mod tests {
         let mut store = StringComponentStore::default();
         let entity = Entity::from(1);
 
-        store.register_component("test", entity, String::from("Test"));
-        store.register_component("test", entity, 5 as f64);
+        store.register_component("string", entity, String::from("Test"));
+        store.register_component("float", entity, 5 as f64);
 
         assert_eq!(store.len(), 2);
     }
@@ -291,14 +295,18 @@ mod tests {
         let mut store = StringComponentStore::default();
         let entity = Entity::from(1);
         let target = Entity::from(2);
+        let target_next = Entity::from(3);
         let component = String::from("Test");
 
         store.register_component("test", entity, component);
         store.register_shared_component::<String>("test", "test", target, entity);
+        store.register_shared_component::<String>("test_next", "test", target_next, entity);
 
         assert!(store.get::<String>("test", entity).is_ok());
         assert!(store.get::<String>("test", target).is_ok());
+        assert!(store.get::<String>("test_next", target_next).is_ok());
         assert!(store.is_origin::<String>("test", entity));
         assert!(!store.is_origin::<String>("test", target));
+        assert!(!store.is_origin::<String>("test", target_next));
     }
 }

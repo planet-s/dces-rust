@@ -78,7 +78,10 @@ impl ComponentStore for TypeComponentStore {
             .filter(|&(k, _)| k.0 == entity.into())
             .map(|(k, _)| *k)
             .collect();
-        let _ = keys.iter().map(|k| self.components.remove(k));
+
+        for k in keys {
+            self.components.remove(&k);
+        }
 
         let keys: Vec<(Entity, TypeId)> = self
             .shared
@@ -87,7 +90,9 @@ impl ComponentStore for TypeComponentStore {
             .map(|(k, _)| *k)
             .collect();
 
-        let _ = keys.iter().map(|k| self.shared.remove(k));
+        for k in keys {
+            self.shared.remove(&k);
+        }
     }
 }
 
@@ -302,7 +307,6 @@ mod tests {
         let entity = Entity::from(1);
         let component = String::from("Test");
 
-     
         store.register_component_box(entity, ComponentBox::new(component));
 
         assert!(store.get::<String>(entity).is_ok());

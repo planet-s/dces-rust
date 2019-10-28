@@ -11,9 +11,6 @@ pub use self::string_component_store::*;
 mod component_store;
 mod string_component_store;
 
-#[cfg(test)]
-mod tests;
-
 /// The entity builder is used to create an entity with components.
 pub struct EntityBuilder<'a, E, C>
 where
