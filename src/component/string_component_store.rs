@@ -46,12 +46,7 @@ impl StringComponentBuilder {
     }
 
     /// Finishing the creation of the entity.
-    pub fn build(
-        self,
-    ) -> (
-        BuildComponents,
-        BuildSharedComponents,
-    ) {
+    pub fn build(self) -> (BuildComponents, BuildSharedComponents) {
         (self.components, self.shared)
     }
 }
@@ -65,10 +60,7 @@ pub struct StringComponentStore {
 }
 
 impl ComponentStore for StringComponentStore {
-    type Components = (
-        BuildComponents,
-        BuildSharedComponents,
-    );
+    type Components = (BuildComponents, BuildSharedComponents);
 
     fn append(&mut self, entity: Entity, components: Self::Components) {
         for (key, value) in components.0 {
@@ -107,7 +99,7 @@ impl ComponentStore for StringComponentStore {
 
 impl StringComponentStore {
     /// Register a `component` for the given `entity`.
-    pub fn register_component<C: Component>(
+    pub fn register<C: Component>(
         &mut self,
         key: impl Into<String>,
         entity: Entity,
@@ -117,8 +109,17 @@ impl StringComponentStore {
             .insert((entity, key.into()), Box::new(component));
     }
 
-    /// Registers a sharing of the given component between the given entities.
-    pub fn register_shared_component<C: Component>(
+    /// Registers a sharing of the given component between the given entities. Uses as source key the component key.
+    pub fn register_shared<C: Component>(
+        &mut self,
+        key: &str,
+        target: Entity,
+        source: Entity,
+    ) {
+        self.register_shared_by_source_key::<C>(key, key, target, source);
+    }
+
+    pub fn register_shared_by_source_key<C: Component>(
         &mut self,
         key: &str,
         source_key: &str,
@@ -131,8 +132,18 @@ impl StringComponentStore {
             .insert(target_key, (source, source_key.to_string()));
     }
 
+    /// Registers a sharing of the given component between the given entities. Uses as source key the component key.
+    pub fn register_shared_box(
+        &mut self,
+        key: &str,
+        target: Entity,
+        source: SharedComponentBox,
+    ) {
+        self.register_shared_box_by_source_key(key, key, target, source);
+    }
+
     /// Registers a sharing of the given component between the given entities.
-    pub fn register_shared_component_box(
+    pub fn register_shared_box_by_source_key(
         &mut self,
         key: &str,
         source_key: &str,
@@ -146,7 +157,7 @@ impl StringComponentStore {
     }
 
     /// Register a `component_box` for the given `entity`.
-    pub fn register_component_box(
+    pub fn register_box(
         &mut self,
         key: &str,
         entity: Entity,
@@ -267,19 +278,19 @@ mod tests {
     fn remove_entity() {
         let mut store = StringComponentStore::default();
         let entity = Entity::from(1);
-        store.register_component("test", entity, String::from("Test"));
+        store.register("test", entity, String::from("Test"));
         store.remove_entity(entity);
 
         assert!(!store.contains_entity(entity));
     }
 
     #[test]
-    fn register_component() {
+    fn register() {
         let mut store = StringComponentStore::default();
         let entity = Entity::from(1);
         let component = String::from("Test");
 
-        store.register_component("test", entity, component);
+        store.register("test", entity, component);
 
         assert!(store.get::<String>("test", entity).is_ok());
     }
@@ -289,23 +300,23 @@ mod tests {
         let mut store = StringComponentStore::default();
         let entity = Entity::from(1);
 
-        store.register_component("string", entity, String::from("Test"));
-        store.register_component("float", entity, 5 as f64);
+        store.register("string", entity, String::from("Test"));
+        store.register("float", entity, 5 as f64);
 
         assert_eq!(store.len(), 2);
     }
 
     #[test]
-    fn register_shared_component() {
+    fn register_shared() {
         let mut store = StringComponentStore::default();
         let entity = Entity::from(1);
         let target = Entity::from(2);
         let target_next = Entity::from(3);
         let component = String::from("Test");
 
-        store.register_component("test", entity, component);
-        store.register_shared_component::<String>("test", "test", target, entity);
-        store.register_shared_component::<String>("test_next", "test", target_next, entity);
+        store.register("test", entity, component);
+        store.register_shared::<String>("test", target, entity);
+        store.register_shared_by_source_key::<String>("test_next", "test", target_next, entity);
 
         assert!(store.get::<String>("test", entity).is_ok());
         assert!(store.get::<String>("test", target).is_ok());

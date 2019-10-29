@@ -98,20 +98,20 @@ impl ComponentStore for TypeComponentStore {
 
 impl TypeComponentStore {
     /// Register a `component` for the given `entity`.
-    pub fn register_component<C: Component>(&mut self, entity: Entity, component: C) {
+    pub fn register<C: Component>(&mut self, entity: Entity, component: C) {
         self.components
             .insert((entity, TypeId::of::<C>()), Box::new(component));
     }
 
     /// Registers a sharing of the given component between the given entities.
-    pub fn register_shared_component<C: Component>(&mut self, target: Entity, source: Entity) {
+    pub fn register_shared<C: Component>(&mut self, target: Entity, source: Entity) {
         let target_key = (target, TypeId::of::<C>());
         self.components.remove(&target_key);
         self.shared.insert(target_key, source);
     }
 
     /// Registers a sharing of the given component between the given entities.
-    pub fn register_shared_component_box(
+    pub fn register_shared_box(
         &mut self,
         target: impl Into<Entity>,
         source: SharedComponentBox,
@@ -122,7 +122,7 @@ impl TypeComponentStore {
     }
 
     /// Register a `component_box` for the given `entity`.
-    pub fn register_component_box(
+    pub fn register_box(
         &mut self,
         entity: impl Into<Entity>,
         component_box: ComponentBox,
@@ -257,19 +257,19 @@ mod tests {
     fn remove_entity() {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
-        store.register_component(entity, String::from("Test"));
+        store.register(entity, String::from("Test"));
         store.remove_entity(entity);
 
         assert!(!store.contains_entity(entity));
     }
 
     #[test]
-    fn register_component() {
+    fn register() {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
         let component = String::from("Test");
 
-        store.register_component(entity, component);
+        store.register(entity, component);
 
         assert!(store.get::<String>(entity).is_ok());
     }
@@ -279,21 +279,21 @@ mod tests {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
 
-        store.register_component(entity, String::from("Test"));
-        store.register_component(entity, 5 as f64);
+        store.register(entity, String::from("Test"));
+        store.register(entity, 5 as f64);
 
         assert_eq!(store.len(), 2);
     }
 
     #[test]
-    fn register_shared_component() {
+    fn register_shared() {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
         let target = Entity::from(2);
         let component = String::from("Test");
 
-        store.register_component(entity, component);
-        store.register_shared_component::<String>(target, entity);
+        store.register(entity, component);
+        store.register_shared::<String>(target, entity);
 
         assert!(store.get::<String>(entity).is_ok());
         assert!(store.get::<String>(target).is_ok());
@@ -302,25 +302,25 @@ mod tests {
     }
 
     #[test]
-    fn register_component_box() {
+    fn register_box() {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
         let component = String::from("Test");
 
-        store.register_component_box(entity, ComponentBox::new(component));
+        store.register_box(entity, ComponentBox::new(component));
 
         assert!(store.get::<String>(entity).is_ok());
     }
 
     #[test]
-    fn register_shared_component_box() {
+    fn register_shared_box() {
         let mut store = TypeComponentStore::default();
         let entity = Entity::from(1);
         let target = Entity::from(2);
         let component = String::from("Test");
 
-        store.register_component(entity, component);
-        store.register_shared_component_box(
+        store.register(entity, component);
+        store.register_shared_box(
             target,
             SharedComponentBox::new(TypeId::of::<String>(), entity),
         );
