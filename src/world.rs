@@ -99,6 +99,11 @@ where
         &mut self.entity_component_manager
     }
 
+    /// Print infos about the given entity.
+    pub fn print_entity(&self, entity: impl Into<Entity>) {
+        self.entity_component_manager.component_store().print_entity(entity);
+    }
+
     /// Run all systems of the world.
     pub fn run(&mut self) {
         if self.first_run {

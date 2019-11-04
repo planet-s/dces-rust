@@ -15,6 +15,8 @@ pub enum NotFound {
     ComponentKey(String),
     /// Unknown error
     Unknown(String),
+    /// Key could not be found
+    Key((Entity, String))
 }
 
 impl Default for NotFound {

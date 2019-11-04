@@ -95,30 +95,35 @@ impl ComponentStore for StringComponentStore {
             self.shared.remove(&k);
         }
     }
+
+    fn print_entity(&self, entity: impl Into<Entity>) {
+        let entity = entity.into();
+
+        println!("Components of entity: {}", entity.0);
+        for (k, v) in self.components.iter().filter(|&(k, _)| k.0 == entity) {
+            println!("Key: {:?}, Value: {:?}", k, v);
+        }
+
+        println!("Shared components of entity: {}", entity.0);
+        for (k, v) in self.shared.iter().filter(|&(k, _)| k.0 == entity) {
+            println!("Key: {:?}, Value: {:?}", k, v);
+        }
+    }
 }
 
 impl StringComponentStore {
     /// Register a `component` for the given `entity`.
-    pub fn register<C: Component>(
-        &mut self,
-        key: impl Into<String>,
-        entity: Entity,
-        component: C,
-    ) {
+    pub fn register<C: Component>(&mut self, key: impl Into<String>, entity: Entity, component: C) {
         self.components
             .insert((entity, key.into()), Box::new(component));
     }
 
     /// Registers a sharing of the given component between the given entities. Uses as source key the component key.
-    pub fn register_shared<C: Component>(
-        &mut self,
-        key: &str,
-        target: Entity,
-        source: Entity,
-    ) {
+    pub fn register_shared<C: Component>(&mut self, key: &str, target: Entity, source: Entity) {
         self.register_shared_by_source_key::<C>(key, key, target, source);
     }
 
+    /// Registers a sharing of the given component between the given entities.
     pub fn register_shared_by_source_key<C: Component>(
         &mut self,
         key: &str,
@@ -133,12 +138,7 @@ impl StringComponentStore {
     }
 
     /// Registers a sharing of the given component between the given entities. Uses as source key the component key.
-    pub fn register_shared_box(
-        &mut self,
-        key: &str,
-        target: Entity,
-        source: SharedComponentBox,
-    ) {
+    pub fn register_shared_box(&mut self, key: &str, target: Entity, source: SharedComponentBox) {
         self.register_shared_box_by_source_key(key, key, target, source);
     }
 
@@ -157,12 +157,7 @@ impl StringComponentStore {
     }
 
     /// Register a `component_box` for the given `entity`.
-    pub fn register_box(
-        &mut self,
-        key: &str,
-        entity: Entity,
-        component_box: ComponentBox,
-    ) {
+    pub fn register_box(&mut self, key: &str, entity: Entity, component_box: ComponentBox) {
         let (_, component) = component_box.consume();
         self.components.insert((entity, key.into()), component);
     }
@@ -193,9 +188,10 @@ impl StringComponentStore {
         key: impl Into<String>,
         entity: Entity,
     ) -> Result<(Entity, String), NotFound> {
+        let key = key.into();
         self.shared
-            .get(&(entity, key.into()))
-            .ok_or_else(|| NotFound::Entity(entity))
+            .get(&(entity, key.clone()))
+            .ok_or_else(|| NotFound::Key((entity, key)))
             .map(|s| s.clone())
     }
 
@@ -203,7 +199,18 @@ impl StringComponentStore {
     fn source(&self, entity: Entity, key: impl Into<String>) -> Result<(Entity, String), NotFound> {
         let key = (entity, key.into());
         if !self.components.contains_key(&key) {
-            return self.source_from_shared(key.1, key.0);
+            let mut source = self.source_from_shared(key.1.clone(), key.0);
+
+            loop {
+                if source.is_err() || self.components.contains_key(source.as_ref().unwrap()) {
+                    return source;
+                }
+
+                source = self.source_from_shared(
+                    source.as_ref().unwrap().1.as_str(),
+                    source.as_ref().unwrap().0,
+                );
+            }
         }
 
         Result::Ok(key)

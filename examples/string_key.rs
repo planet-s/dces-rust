@@ -19,6 +19,14 @@ impl System<EntityStore, StringComponentStore> for PrintSystem {
             if let Ok(content) = c_store.get::<String>("content", *entity) {
                 println!("{}", content);
             }
+
+            if let Ok(content) = c_store.get::<String>("my_content", *entity) {
+                println!("my_content: {}", content);
+            }
+
+            if let Ok(content) = c_store.get::<String>("my_extra_content", *entity) {
+                println!("my_extra_content: {}", content);
+            }
         }
     }
 }
@@ -46,6 +54,26 @@ fn main() {
         )
         .build();
 
+    let second_source = world
+        .create_entity()
+        .components(
+            StringComponentBuilder::new()
+                .with("header", String::from("Header 3"))
+                .with_shared_source_key::<String>("my_content", "content", source)
+                .build(),
+        )
+        .build();
+
+    world
+        .create_entity()
+        .components(
+            StringComponentBuilder::new()
+                .with("header", String::from("Header 4"))
+                .with_shared_source_key::<String>("my_extra_content", "my_content", second_source)
+                .build(),
+        )
+        .build();
+    
     world.create_system(PrintSystem).with_priority(1).build();
 
     world.run();

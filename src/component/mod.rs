@@ -186,4 +186,7 @@ pub trait ComponentStore {
 
     /// Removes and entity from the store.
     fn remove_entity(&mut self, entity: impl Into<Entity>);
+
+    /// Print infos about the given entity.
+    fn print_entity(&self, entity: impl Into<Entity>);
 }

@@ -94,6 +94,15 @@ impl ComponentStore for TypeComponentStore {
             self.shared.remove(&k);
         }
     }
+
+    fn print_entity(&self, entity: impl Into<Entity>) {
+        let entity = entity.into();
+        let _blub = self
+            .components
+            .iter()
+            .filter(|(k, _)| k.0 == entity)
+            .map(|(_, _)| println!("blub"));
+    }
 }
 
 impl TypeComponentStore {
@@ -111,22 +120,14 @@ impl TypeComponentStore {
     }
 
     /// Registers a sharing of the given component between the given entities.
-    pub fn register_shared_box(
-        &mut self,
-        target: impl Into<Entity>,
-        source: SharedComponentBox,
-    ) {
+    pub fn register_shared_box(&mut self, target: impl Into<Entity>, source: SharedComponentBox) {
         let target_key = (target.into(), source.type_id);
         self.components.remove(&target_key);
         self.shared.insert(target_key, source.source);
     }
 
     /// Register a `component_box` for the given `entity`.
-    pub fn register_box(
-        &mut self,
-        entity: impl Into<Entity>,
-        component_box: ComponentBox,
-    ) {
+    pub fn register_box(&mut self, entity: impl Into<Entity>, component_box: ComponentBox) {
         let entity = entity.into();
         let (type_id, component) = component_box.consume();
 
