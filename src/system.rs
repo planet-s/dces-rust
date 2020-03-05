@@ -128,6 +128,10 @@ where
 
     /// Removes a system from the storage.
     pub fn remove_system(&mut self, system_id: u32) {
+        {
+            let system_to_remove = self.entity_systems.get(&system_id).unwrap();
+            self.priorities.remove(&system_to_remove.priority);
+        }
         self.entity_systems.remove(&system_id);
     }
 
@@ -208,6 +212,7 @@ mod tests {
         esm.remove_system(0);
 
         assert!(!esm.entity_systems.contains_key(&0));
+        assert!(!esm.priorities.contains_key(&0));
     }
 
     #[test]
