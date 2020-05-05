@@ -129,6 +129,7 @@ where
         }
     }
 
+    /// Run all systems of the world and calls `run_with_context` of the systems with the given context.
     pub fn run_with_context(&mut self, ctx: &mut Ctx) {
         if self.first_run {
             if let Some(init_system) = self.system_store.borrow_init_system() {

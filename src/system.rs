@@ -8,6 +8,7 @@ use alloc::collections::{BTreeMap, HashMap};
 
 use crate::{component::*, entity::*, error::NotFound};
 
+/// Default type if you don't want to use a context.
 pub struct NullContext;
 
 /// The run order of a system. The systems will be executed by priority from small to great.
@@ -20,8 +21,10 @@ where
     E: EntityStore,
     C: ComponentStore,
 {
+    /// Runs the system and give access to the entity component manager.
     fn run(&self, _ecm: &mut EntityComponentManager<E, C>) {}
 
+    /// Runs the system and give access to the entity component manager and context.
     fn run_with_context(&self, _ecm: &mut EntityComponentManager<E, C>, _ctx: &mut Ctx) {}
 }
 
