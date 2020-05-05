@@ -9,18 +9,18 @@ use crate::{
 
 /// The `World` struct represents the main interface of the library. It used
 /// as storage of entities, components and systems.
-pub struct World<E, C>
+pub struct World<E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
 {
     entity_component_manager: EntityComponentManager<E, C>,
-    system_store: SystemStore<E, C>,
+    system_store: SystemStore<E, C, Ctx>,
     system_counter: u32,
     first_run: bool,
 }
 
-impl<E, C> Drop for World<E, C>
+impl<E, C, Ctx> Drop for World<E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
@@ -34,24 +34,28 @@ where
     }
 }
 
-unsafe impl<E, C> Send for World<E, C>
+unsafe impl<E, C, Ctx> Send for World<E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
 {
 }
 
-impl<E, C> World<E, C>
+impl<E, C, Ctx> World<E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
 {
     /// Creates a new world from the given container.
+    // pub fn from_stores(entity_store: E, component_store: C) -> World<E, C, DummyContext> {
+    //    World::inner_from_stores::<DummyContext>(entity_store, component_store)
+    // }
+
     pub fn from_stores(entity_store: E, component_store: C) -> Self {
         World {
             entity_component_manager: EntityComponentManager::new(entity_store, component_store),
-            system_store: SystemStore::new(),
             system_counter: 0,
+            system_store: SystemStore::new(),
             first_run: true,
         }
     }
@@ -67,17 +71,17 @@ where
     }
 
     /// Registers the init system.
-    pub fn register_init_system(&mut self, init_system: impl System<E, C>) {
+    pub fn register_init_system(&mut self, init_system: impl System<E, C, Ctx>) {
         self.system_store.register_init_system(init_system);
     }
 
     /// Registers the cleanup system.
-    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<E, C>) {
+    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<E, C, Ctx>) {
         self.system_store.register_cleanup_system(cleanup_system);
     }
 
     /// Creates a new entity system and returns a returns an `SystemStoreBuilder`.
-    pub fn create_system(&mut self, system: impl System<E, C>) -> SystemStoreBuilder<'_, E, C> {
+    pub fn create_system(&mut self, system: impl System<E, C, Ctx>) -> SystemStoreBuilder<'_, E, C, Ctx> {
         let entity_system_id = self.system_counter;
         self.system_store.register_system(system, entity_system_id);
         self.system_counter += 1;
@@ -124,6 +128,26 @@ where
             }
         }
     }
+
+    pub fn run_with_context(&mut self, ctx: &mut Ctx) {
+        if self.first_run {
+            if let Some(init_system) = self.system_store.borrow_init_system() {
+                init_system.system.run_with_context(&mut self.entity_component_manager, ctx);
+            }
+            self.first_run = false;
+        }
+
+        let priorities = &self.system_store.priorities;
+        for priority in priorities.values() {
+            for system in priority {
+                self.system_store
+                    .borrow_entity_system(*system)
+                    .unwrap()
+                    .system
+                    .run_with_context(&mut self.entity_component_manager, ctx);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -131,17 +155,18 @@ mod tests {
     use super::*;
     use crate::component::TypeComponentStore;
     use crate::entity::{Entity, VecEntityStore};
+    use crate::system::DummyContext;
 
     #[derive(Default)]
     struct TestSystem;
 
-    impl System<VecEntityStore, TypeComponentStore> for TestSystem {
+    impl System<VecEntityStore, TypeComponentStore, DummyContext> for TestSystem {
         fn run(&self, _ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {}
     }
 
     #[test]
     fn create_entity() {
-        let mut world =
+        let mut world: World<VecEntityStore, TypeComponentStore, DummyContext> =
             World::from_stores(VecEntityStore::default(), TypeComponentStore::default());
         assert_eq!(Entity(0), world.create_entity().build());
         assert_eq!(Entity(1), world.create_entity().build());
