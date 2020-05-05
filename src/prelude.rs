@@ -6,6 +6,6 @@ pub use crate::{
     },
     entity::{Entity, VecEntityStore as EntityStore},
     error::NotFound,
-    system::{Priority, System, DummyContext},
+    system::{Priority, System, NullContext},
     world::World,
 };

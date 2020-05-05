@@ -47,8 +47,8 @@ where
     C: ComponentStore,
 {
     /// Creates a new world from the given container.
-    // pub fn from_stores(entity_store: E, component_store: C) -> World<E, C, DummyContext> {
-    //    World::inner_from_stores::<DummyContext>(entity_store, component_store)
+    // pub fn from_stores(entity_store: E, component_store: C) -> World<E, C, NullContext> {
+    //    World::inner_from_stores::<NullContext>(entity_store, component_store)
     // }
 
     pub fn from_stores(entity_store: E, component_store: C) -> Self {
@@ -155,18 +155,18 @@ mod tests {
     use super::*;
     use crate::component::TypeComponentStore;
     use crate::entity::{Entity, VecEntityStore};
-    use crate::system::DummyContext;
+    use crate::system::NullContext;
 
     #[derive(Default)]
     struct TestSystem;
 
-    impl System<VecEntityStore, TypeComponentStore, DummyContext> for TestSystem {
+    impl System<VecEntityStore, TypeComponentStore, NullContext> for TestSystem {
         fn run(&self, _ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {}
     }
 
     #[test]
     fn create_entity() {
-        let mut world: World<VecEntityStore, TypeComponentStore, DummyContext> =
+        let mut world: World<VecEntityStore, TypeComponentStore, NullContext> =
             World::from_stores(VecEntityStore::default(), TypeComponentStore::default());
         assert_eq!(Entity(0), world.create_entity().build());
         assert_eq!(Entity(1), world.create_entity().build());

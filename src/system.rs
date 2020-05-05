@@ -8,7 +8,7 @@ use alloc::collections::{BTreeMap, HashMap};
 
 use crate::{component::*, entity::*, error::NotFound};
 
-pub struct DummyContext;
+pub struct NullContext;
 
 /// The run order of a system. The systems will be executed by priority from small to great.
 pub type Priority = i32;
@@ -173,7 +173,7 @@ mod tests {
 
     struct TestSystem;
 
-    impl System<VecEntityStore, TypeComponentStore, DummyContext> for TestSystem {}
+    impl System<VecEntityStore, TypeComponentStore, NullContext> for TestSystem {}
 
     #[test]
     fn test_register_system() {

@@ -2,7 +2,7 @@ use dces::prelude::*;
 
 struct InitSystem;
 
-impl System<EntityStore, ComponentStore, DummyContext> for InitSystem {
+impl System<EntityStore, ComponentStore, NullContext> for InitSystem {
     fn run(&self, _: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         println!("Init");
     }
@@ -10,7 +10,7 @@ impl System<EntityStore, ComponentStore, DummyContext> for InitSystem {
 
 struct CleanupSystem;
 
-impl System<EntityStore, ComponentStore, DummyContext> for CleanupSystem {
+impl System<EntityStore, ComponentStore, NullContext> for CleanupSystem {
     fn run(&self, _: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         println!("Cleanup");
     }
@@ -18,7 +18,7 @@ impl System<EntityStore, ComponentStore, DummyContext> for CleanupSystem {
 
 struct PrintSystem;
 
-impl System<EntityStore, ComponentStore, DummyContext> for PrintSystem {
+impl System<EntityStore, ComponentStore, NullContext> for PrintSystem {
     fn run(&self, _: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         println!("Print");
     }

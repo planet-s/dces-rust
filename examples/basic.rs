@@ -13,7 +13,7 @@ struct Name(String);
 struct Depth(u32);
 
 pub struct SizeSystem;
-impl System<EntityStore, ComponentStore, DummyContext> for SizeSystem {
+impl System<EntityStore, ComponentStore, NullContext> for SizeSystem {
     fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
@@ -27,7 +27,7 @@ impl System<EntityStore, ComponentStore, DummyContext> for SizeSystem {
 }
 
 pub struct PrintSystem;
-impl System<EntityStore, ComponentStore, DummyContext> for PrintSystem {
+impl System<EntityStore, ComponentStore, NullContext> for PrintSystem {
     fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
