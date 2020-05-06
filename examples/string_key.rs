@@ -7,7 +7,7 @@ struct Name(String);
 struct Depth(u32);
 
 pub struct PrintSystem;
-impl System<EntityStore, StringComponentStore, NullContext> for PrintSystem {
+impl System<EntityStore, StringComponentStore, PhantomContext> for PrintSystem {
     fn run(&self, ecm: &mut EntityComponentManager<EntityStore, StringComponentStore>) {
         let (e_store, c_store) = ecm.stores();
 

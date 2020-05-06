@@ -7,6 +7,8 @@ struct Name {
 
 struct StringContext(String);
 
+impl<'a> Context<'a> for StringContext {}
+
 struct PrintSystem;
 
 impl System<EntityStore, ComponentStore, StringContext> for PrintSystem {

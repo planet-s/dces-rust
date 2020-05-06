@@ -6,10 +6,14 @@ use std::collections::{BTreeMap, HashMap};
 #[cfg(feature = "no_std")]
 use alloc::collections::{BTreeMap, HashMap};
 
-use crate::{component::*, entity::*, error::NotFound};
+use crate::{component::*, entity::*, error::NotFound, world::Context};
+
 
 /// Default type if you don't want to use a context.
-pub struct NullContext;
+#[derive(Default)]
+pub struct PhantomContext;
+
+impl<'a> Context<'a> for PhantomContext {}
 
 /// The run order of a system. The systems will be executed by priority from small to great.
 pub type Priority = i32;
@@ -176,7 +180,7 @@ mod tests {
 
     struct TestSystem;
 
-    impl System<VecEntityStore, TypeComponentStore, NullContext> for TestSystem {}
+    impl System<VecEntityStore, TypeComponentStore, PhantomContext> for TestSystem {}
 
     #[test]
     fn test_register_system() {

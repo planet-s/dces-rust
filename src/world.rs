@@ -9,12 +9,15 @@ use crate::{
     system::{System, SystemStore, SystemStoreBuilder},
 };
 
+pub trait Context<'a> {}
+
 /// The `World` struct represents the main interface of the library. It used
 /// as storage of entities, components and systems.
-pub struct World<'a, E, C, Ctx: 'a>
+pub struct World<'a, E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
+    Ctx: Context<'a>
 {
     entity_component_manager: EntityComponentManager<E, C>,
     system_store: SystemStore<E, C, Ctx>,
@@ -27,6 +30,7 @@ impl<'a, E, C, Ctx> Drop for World<'a, E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
+    Ctx: Context<'a>
 {
     fn drop(&mut self) {
         if let Some(cleanup_system) = self.system_store.borrow_cleanup_system() {
@@ -41,6 +45,7 @@ unsafe impl<'a, E, C, Ctx> Send for World<'a, E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
+    Ctx: Context<'a>
 {
 }
 
@@ -48,10 +53,11 @@ impl<'a, E, C, Ctx> World<'a, E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
+    Ctx: Context<'a>
 {
     /// Creates a new world from the given container.
-    // pub fn from_stores(entity_store: E, component_store: C) -> World<E, C, NullContext> {
-    //    World::inner_from_stores::<NullContext>(entity_store, component_store)
+    // pub fn from_stores(entity_store: E, component_store: C) -> World<E, C, PhantomContext> {
+    //    World::inner_from_stores::<PhantomContext>(entity_store, component_store)
     // }
 
     pub fn from_stores(entity_store: E, component_store: C) -> Self {
@@ -160,18 +166,18 @@ mod tests {
     use super::*;
     use crate::component::TypeComponentStore;
     use crate::entity::{Entity, VecEntityStore};
-    use crate::system::NullContext;
+    use crate::system::PhantomContext;
 
     #[derive(Default)]
     struct TestSystem;
 
-    impl System<VecEntityStore, TypeComponentStore, NullContext> for TestSystem {
+    impl System<VecEntityStore, TypeComponentStore, PhantomContext> for TestSystem {
         fn run(&self, _ecm: &mut EntityComponentManager<VecEntityStore, TypeComponentStore>) {}
     }
 
     #[test]
     fn create_entity() {
-        let mut world: World<VecEntityStore, TypeComponentStore, NullContext> =
+        let mut world: World<VecEntityStore, TypeComponentStore, PhantomContext> =
             World::from_stores(VecEntityStore::default(), TypeComponentStore::default());
         assert_eq!(Entity(0), world.create_entity().build());
         assert_eq!(Entity(1), world.create_entity().build());
