@@ -27,7 +27,7 @@
 //!
 //! struct PrintSystem;
 //!
-//! impl System<EntityStore, ComponentStore, NullContext> for PrintSystem {
+//! impl System<EntityStore, ComponentStore, PhantomContext> for PrintSystem {
 //!    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
 //!        let (e_store, c_store) = ecm.stores();
 //!
