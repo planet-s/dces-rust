@@ -1,6 +1,8 @@
 use core::cell::Cell;
 use core::ops::Drop;
 
+use std::marker::PhantomData;
+
 use crate::{
     component::*,
     entity::*,
@@ -9,7 +11,7 @@ use crate::{
 
 /// The `World` struct represents the main interface of the library. It used
 /// as storage of entities, components and systems.
-pub struct World<E, C, Ctx>
+pub struct World<'a, E, C, Ctx: 'a>
 where
     E: EntityStore,
     C: ComponentStore,
@@ -18,9 +20,10 @@ where
     system_store: SystemStore<E, C, Ctx>,
     system_counter: u32,
     first_run: bool,
+    phantom_data: PhantomData<&'a Ctx>
 }
 
-impl<E, C, Ctx> Drop for World<E, C, Ctx>
+impl<'a, E, C, Ctx> Drop for World<'a, E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
@@ -34,14 +37,14 @@ where
     }
 }
 
-unsafe impl<E, C, Ctx> Send for World<E, C, Ctx>
+unsafe impl<'a, E, C, Ctx> Send for World<'a, E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
 {
 }
 
-impl<E, C, Ctx> World<E, C, Ctx>
+impl<'a, E, C, Ctx> World<'a, E, C, Ctx>
 where
     E: EntityStore,
     C: ComponentStore,
@@ -57,6 +60,7 @@ where
             system_counter: 0,
             system_store: SystemStore::new(),
             first_run: true,
+            phantom_data: PhantomData::default()
         }
     }
 
