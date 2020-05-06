@@ -1,36 +1,29 @@
 use core::cell::Cell;
 use core::ops::Drop;
 
-use std::marker::PhantomData;
-
 use crate::{
     component::*,
     entity::*,
     system::{System, SystemStore, SystemStoreBuilder},
 };
 
-pub trait Context<'a> {}
-
 /// The `World` struct represents the main interface of the library. It used
 /// as storage of entities, components and systems.
-pub struct World<'a, E, C, Ctx>
+pub struct World<E, C, Ctx>
 where
     E: EntityStore,
-    C: ComponentStore,
-    Ctx: Context<'a>
+    C: ComponentStore
 {
     entity_component_manager: EntityComponentManager<E, C>,
     system_store: SystemStore<E, C, Ctx>,
     system_counter: u32,
     first_run: bool,
-    phantom_data: PhantomData<&'a Ctx>
 }
 
-impl<'a, E, C, Ctx> Drop for World<'a, E, C, Ctx>
+impl<E, C, Ctx> Drop for World<E, C, Ctx>
 where
     E: EntityStore,
-    C: ComponentStore,
-    Ctx: Context<'a>
+    C: ComponentStore
 {
     fn drop(&mut self) {
         if let Some(cleanup_system) = self.system_store.borrow_cleanup_system() {
@@ -41,19 +34,17 @@ where
     }
 }
 
-unsafe impl<'a, E, C, Ctx> Send for World<'a, E, C, Ctx>
+unsafe impl<E, C, Ctx> Send for World<E, C, Ctx>
 where
     E: EntityStore,
-    C: ComponentStore,
-    Ctx: Context<'a>
+    C: ComponentStore
 {
 }
 
-impl<'a, E, C, Ctx> World<'a, E, C, Ctx>
+impl<E, C, Ctx> World<E, C, Ctx>
 where
     E: EntityStore,
-    C: ComponentStore,
-    Ctx: Context<'a>
+    C: ComponentStore
 {
     /// Creates a new world from the given container.
     // pub fn from_stores(entity_store: E, component_store: C) -> World<E, C, PhantomContext> {
@@ -66,7 +57,6 @@ where
             system_counter: 0,
             system_store: SystemStore::new(),
             first_run: true,
-            phantom_data: PhantomData::default()
         }
     }
 
