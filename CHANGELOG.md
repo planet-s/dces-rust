@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 0.3 Context injection
 
 * Inject context in separate system run method
+* Add entities_of_component method to StringComponentStore
 
 ## 0.2 Component Stores
 

@@ -112,6 +112,26 @@ impl ComponentStore for StringComponentStore {
 }
 
 impl StringComponentStore {
+    /// Returns a list of entities that references the same component.
+    pub fn entities_of_component(&self, key: impl Into<String>, entity: Entity) -> Vec<Entity> {
+        let mut entities = vec![];
+
+        if let Ok(source) = self.source(entity, key) {
+            entities.push(source.0);
+
+            let mut filtered_entities: Vec<Entity> = self
+                .shared
+                .iter()
+                .filter(|s| (s.1).0 == source.0 && (s.1).1 == source.1)
+                .map(|s| (s.0).0)
+                .collect();
+
+            entities.append(&mut filtered_entities);
+        }
+
+        entities
+    }
+
     /// Register a `component` for the given `entity`.
     pub fn register<C: Component>(&mut self, key: impl Into<String>, entity: Entity, component: C) {
         self.components
@@ -258,6 +278,26 @@ impl StringComponentStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn entities_of_component() {
+        let mut store = StringComponentStore::default();
+        let entity = Entity::from(1);
+        let target = Entity::from(2);
+        let target_next = Entity::from(3);
+        let component = String::from("Test");
+
+        store.register("test", entity, component);
+        store.register_shared::<String>("test", target, entity);
+        store.register_shared_by_source_key::<String>("test_next", "test", target_next, entity);
+
+        let entities = store.entities_of_component("test_next", target_next);
+
+        assert_eq!(entities.len(), 3);
+        assert!(entities.contains(&entity));
+        assert!(entities.contains(&target));
+        assert!(entities.contains(&target_next));
+    }
 
     #[test]
     fn builder_with() {
