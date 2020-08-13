@@ -24,7 +24,7 @@ To include DCES in your project, just add the dependency
 line to your `Cargo.toml` file:
 
 ```text
-dces = "0.2"
+dces = "0.3"
 ```
 
 To use DCES master, just add the dependency
