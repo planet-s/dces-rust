@@ -4,7 +4,7 @@ DCES is a library that provides a variant of the Entity Component System: https:
 
 The goal of DCES is a lightweight ECS library with zero dependencies used by UI frameworks and game engines. It is being developed as part of OrbTk an (G)UI framework written in Rust. All widgets and properties of OrbTk are handled by DCES. 
 
-[![Build status](https://gitlab.redox-os.org/redox-os/dces-rust/badges/master/build.svg)](https://gitlab.redox-os.org/redox-os/dces-rust/pipelines)
+[![Build status](https://gitlab.redox-os.org/redox-os/dces-rust/badges/develop/pipeline.svg)](https://gitlab.redox-os.org/redox-os/dces-rust/pipelines)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![crates.io](https://img.shields.io/badge/crates.io-v0.2-orange.svg)](https://crates.io/crates/dces)
 [![docs.rs](https://docs.rs/dces/badge.svg)](https://docs.rs/dces)
