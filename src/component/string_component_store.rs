@@ -221,7 +221,11 @@ impl StringComponentStore {
     }
 
     // Returns the source. First search in entities map. If not found search in shared entity map.
-    fn source(&self, entity: Entity, key: impl Into<String>) -> Result<(Entity, String), NotFound> {
+    pub fn source(
+        &self,
+        entity: Entity,
+        key: impl Into<String>,
+    ) -> Result<(Entity, String), NotFound> {
         let key = (entity, key.into());
         if !self.components.contains_key(&key) {
             let mut source = self.source_from_shared(key.1.clone(), key.0);
