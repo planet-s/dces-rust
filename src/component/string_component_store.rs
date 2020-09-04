@@ -182,6 +182,12 @@ impl StringComponentStore {
         target: Entity,
         source: SharedComponentBox,
     ) {
+        let mut source = source;
+        let mut source_key = source_key.to_string();
+        if let Ok((src, key)) = self.source(source.source, source_key.as_str()) {
+            source.source = src;
+            source_key = key;
+        }
         let target_key = (target, key.to_string());
         self.components.remove(&target_key);
         self.shared
@@ -325,8 +331,6 @@ mod tests {
         store.register_shared_by_source_key::<String>("test_next", "test", target_next, source);
         store.register_shared::<String>("test", next_target_next, target);
 
-        println!("{:?}", store.shared);
-
         let entities = store.entities_of_component("test", source);
         assert_eq!(entities.len(), 4);
 
@@ -334,6 +338,9 @@ mod tests {
         assert_eq!(entities.len(), 4);
 
         let entities = store.entities_of_component("test_next", target_next);
+        assert_eq!(entities.len(), 4);
+
+        let entities = store.entities_of_component("test", next_target_next);
         assert_eq!(entities.len(), 4);
 
         assert!(entities.contains(&source));
