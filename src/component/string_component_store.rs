@@ -227,6 +227,21 @@ impl StringComponentStore {
             .map(|s| s.clone())
     }
 
+    /// Returns the target tuple for the given source.
+    pub fn target(
+        &self,
+        source: Entity,
+        source_key: impl Into<String>,
+    ) -> Result<(Entity, String), NotFound> {
+        let source_key = (source, source_key.into());
+
+        self.shared
+            .iter()
+            .find(|(_, v)| v.0 == source_key.0 && v.1 == source_key.1)
+            .ok_or_else(|| NotFound::Key(source_key))
+            .map(|(k, _)| (k.0, k.1.clone()))
+    }
+
     /// Returns the source. First search in entities map. If not found search in shared entity map.
     pub fn source(
         &self,
@@ -309,6 +324,8 @@ mod tests {
         store.register_shared_by_source_key::<String>("test_next", "test", target_next, source);
         store.register_shared::<String>("test", next_target_next, target);
 
+        println!("{:?}", store.shared);
+
         let entities = store.entities_of_component("test", source);
         assert_eq!(entities.len(), 4);
 
@@ -376,6 +393,23 @@ mod tests {
         store.register("float", entity, 5 as f64);
 
         assert_eq!(store.len(), 2);
+    }
+
+    #[test]
+    fn target() {
+        let mut store = StringComponentStore::default();
+        let source = Entity::from(1);
+        let target = Entity::from(2);
+        let component = String::from("Test");
+
+        store.register("test", source, component);
+        store.register_shared_by_source_key::<String>("test_next", "test", target, source);
+
+        let result_target = store.target(source, "test");
+
+        assert!(result_target.is_ok());
+        assert_eq!(result_target.clone().unwrap().0, target);
+        assert_eq!(result_target.unwrap().1, "test_next".to_string());
     }
 
     #[test]
