@@ -220,7 +220,7 @@ impl StringComponentStore {
             .map(|s| s.clone())
     }
 
-    // Returns the source. First search in entities map. If not found search in shared entity map.
+    /// Returns the source. First search in entities map. If not found search in shared entity map.
     pub fn source(
         &self,
         entity: Entity,
