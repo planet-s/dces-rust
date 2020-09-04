@@ -151,10 +151,15 @@ impl StringComponentStore {
         target: Entity,
         source: Entity,
     ) {
+        let mut source = source;
+        let mut source_key = source_key.to_string();
+        if let Ok((src, key)) = self.source(source, source_key.as_str()) {
+            source = src;
+            source_key = key;
+        }
         let target_key = (target, key.to_string());
         self.components.remove(&target_key);
-        self.shared
-            .insert(target_key, (source, source_key.to_string()));
+        self.shared.insert(target_key, (source, source_key));
     }
 
     /// Registers a sharing of the given component between the given entities. Uses as source key the component key.
@@ -285,18 +290,21 @@ mod tests {
         let entity = Entity::from(1);
         let target = Entity::from(2);
         let target_next = Entity::from(3);
+        let next_target_next = Entity::from(4);
         let component = String::from("Test");
 
         store.register("test", entity, component);
         store.register_shared::<String>("test", target, entity);
         store.register_shared_by_source_key::<String>("test_next", "test", target_next, entity);
+        store.register_shared::<String>("test", next_target_next, target);
 
         let entities = store.entities_of_component("test_next", target_next);
 
-        assert_eq!(entities.len(), 3);
+        assert_eq!(entities.len(), 4);
         assert!(entities.contains(&entity));
         assert!(entities.contains(&target));
         assert!(entities.contains(&target_next));
+        assert!(entities.contains(&next_target_next));
     }
 
     #[test]

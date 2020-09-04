@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 0.3.1 tbd
 
 * priority for system also removed when system is removed 
+* fix sharing of shared properties
 
 ## 0.3 Context injection
 
