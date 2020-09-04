@@ -227,19 +227,20 @@ impl StringComponentStore {
             .map(|s| s.clone())
     }
 
-    /// Returns the target tuple for the given source.
-    pub fn target(
+    /// Returns the target key for a given source and target.
+    pub fn target_key(
         &self,
         source: Entity,
+        target: Entity,
         source_key: impl Into<String>,
-    ) -> Result<(Entity, String), NotFound> {
+    ) -> Result<String, NotFound> {
         let source_key = (source, source_key.into());
 
         self.shared
             .iter()
-            .find(|(_, v)| v.0 == source_key.0 && v.1 == source_key.1)
+            .find(|(k, v)| k.0 == target && v.0 == source_key.0 && v.1 == source_key.1)
             .ok_or_else(|| NotFound::Key(source_key))
-            .map(|(k, _)| (k.0, k.1.clone()))
+            .map(|(k, _)| k.1.clone())
     }
 
     /// Returns the source. First search in entities map. If not found search in shared entity map.
@@ -396,20 +397,26 @@ mod tests {
     }
 
     #[test]
-    fn target() {
+    fn target_key() {
         let mut store = StringComponentStore::default();
         let source = Entity::from(1);
         let target = Entity::from(2);
+        let target_two = Entity::from(3);
         let component = String::from("Test");
 
         store.register("test", source, component);
-        store.register_shared_by_source_key::<String>("test_next", "test", target, source);
+        store.register_shared_by_source_key::<String>("test_one", "test", target, source);
+        store.register_shared_by_source_key::<String>("test_two", "test", target_two, source);
 
-        let result_target = store.target(source, "test");
+        let result_target = store.target_key(source, target, "test");
 
         assert!(result_target.is_ok());
-        assert_eq!(result_target.clone().unwrap().0, target);
-        assert_eq!(result_target.unwrap().1, "test_next".to_string());
+        assert_eq!(result_target.unwrap(), "test_one");
+
+        let result_target = store.target_key(source, target_two, "test");
+
+        assert!(result_target.is_ok());
+        assert_eq!(result_target.unwrap(), "test_two");
     }
 
     #[test]
