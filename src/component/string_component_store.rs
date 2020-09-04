@@ -322,31 +322,42 @@ mod tests {
         let mut store = StringComponentStore::default();
         let source = Entity::from(1);
         let target = Entity::from(2);
-        let target_next = Entity::from(3);
-        let next_target_next = Entity::from(4);
+        let target_two = Entity::from(3);
+        let target_three = Entity::from(4);
+        let target_four = Entity::from(5);
         let component = String::from("Test");
 
         store.register("test", source, component);
         store.register_shared::<String>("test", target, source);
-        store.register_shared_by_source_key::<String>("test_next", "test", target_next, source);
-        store.register_shared::<String>("test", next_target_next, target);
+        store.register_shared_by_source_key::<String>("test_next", "test", target_two, source);
+        store.register_shared::<String>("test", target_three, target);
+        store.register_shared_by_source_key::<String>(
+            "test_next",
+            "test_next",
+            target_four,
+            target_two,
+        );
 
         let entities = store.entities_of_component("test", source);
-        assert_eq!(entities.len(), 4);
+        assert_eq!(entities.len(), 5);
 
         let entities = store.entities_of_component("test", target);
-        assert_eq!(entities.len(), 4);
+        assert_eq!(entities.len(), 5);
 
-        let entities = store.entities_of_component("test_next", target_next);
-        assert_eq!(entities.len(), 4);
+        let entities = store.entities_of_component("test_next", target_two);
+        assert_eq!(entities.len(), 5);
 
-        let entities = store.entities_of_component("test", next_target_next);
-        assert_eq!(entities.len(), 4);
+        let entities = store.entities_of_component("test", target_three);
+        assert_eq!(entities.len(), 5);
+
+        let entities = store.entities_of_component("test_next", target_four);
+        assert_eq!(entities.len(), 5);
 
         assert!(entities.contains(&source));
         assert!(entities.contains(&target));
-        assert!(entities.contains(&target_next));
-        assert!(entities.contains(&next_target_next));
+        assert!(entities.contains(&target_two));
+        assert!(entities.contains(&target_three));
+        assert!(entities.contains(&target_four));
     }
 
     #[test]
