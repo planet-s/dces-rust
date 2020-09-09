@@ -182,12 +182,6 @@ impl StringComponentStore {
         target: Entity,
         source: SharedComponentBox,
     ) {
-        let mut source = source;
-        let mut source_key = source_key.to_string();
-        if let Ok((src, key)) = self.source(source.source, source_key.as_str()) {
-            source.source = src;
-            source_key = key;
-        }
         let target_key = (target, key.to_string());
         self.components.remove(&target_key);
         self.shared
