@@ -274,6 +274,19 @@ impl StringComponentStore {
         Result::Ok(key)
     }
 
+    pub fn is<C: Component>(&self, key: &str, entity: Entity) -> Result<bool, NotFound> {
+        let source = self.source(entity, key);
+
+        match source {
+            Ok(source) => self
+                .components
+                .get(&(source.0, source.1))
+                .ok_or_else(|| NotFound::Entity(entity))
+                .map(|component| (*component).is::<C>()),
+            Err(_) => Result::Err(NotFound::Entity(entity)),
+        }
+    }
+
     /// Returns the type_id of the requested component.
     pub fn type_id(&self, key: &str, entity: Entity) -> Result<std::any::TypeId, NotFound> {
         let source = self.source(entity, key);
