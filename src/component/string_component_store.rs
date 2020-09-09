@@ -274,6 +274,20 @@ impl StringComponentStore {
         Result::Ok(key)
     }
 
+    /// Returns the type_id of the requested component.
+    pub fn type_id(&self, key: &str, entity: Entity) -> Result<std::any::TypeId, NotFound> {
+        let source = self.source(entity, key);
+
+        match source {
+            Ok(source) => self
+                .components
+                .get(&(source.0, source.1))
+                .ok_or_else(|| NotFound::Entity(entity))
+                .map(|component| component.type_id()),
+            Err(_) => Result::Err(NotFound::Entity(entity)),
+        }
+    }
+
     /// Returns a reference of a component of type `C` from the given `entity`. If the entity does
     /// not exists or it doesn't have a component of type `C` `NotFound` will be returned.
     pub fn get<C: Component>(&self, key: &str, entity: Entity) -> Result<&C, NotFound> {
