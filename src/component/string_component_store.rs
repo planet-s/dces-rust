@@ -283,7 +283,7 @@ impl StringComponentStore {
                 .components
                 .get(&(source.0, source.1))
                 .ok_or_else(|| NotFound::Entity(entity))
-                .map(|component| component.type_id()),
+                .map(|component| (*component).type_id()),
             Err(_) => Result::Err(NotFound::Entity(entity)),
         }
     }
