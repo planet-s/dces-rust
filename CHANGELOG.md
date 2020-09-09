@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * priority for system also removed when system is removed 
 * fix sharing of shared properties
 * add target_key method to StringComponentStore
-* add type_id method to StringComponentStore
+* add is method to StringComponentStore
 
 ## 0.3 Context injection
 
