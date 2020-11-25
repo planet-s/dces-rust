@@ -15,7 +15,7 @@ The goal of DCES is a lightweight ECS library with zero dependencies used by UI 
 * Share components between entities
 * Register systems and read / write components of entities
 * Order systems execution by priority
-* Register container for entity organization (Vec, HashMap, Custom Container, ...)
+* Register container for entity organization (Vec, FxHashMap, Custom Container, ...)
 * Register init and cleanup system
 
 ## Usage

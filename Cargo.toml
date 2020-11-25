@@ -10,6 +10,9 @@ keywords = ["ecs", "ui", "gamedev"]
 readme = "README.md"
 edition = "2018"
 
+[dependencies]
+fxhash = "0.2.1"
+
 [features]
 default = []
 no_std = []

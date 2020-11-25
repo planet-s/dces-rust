@@ -1,6 +1,6 @@
 use core::any::{Any, TypeId};
 
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 
 use super::{Component, ComponentBox, ComponentStore, Entity, SharedComponentBox};
 use crate::error::NotFound;
@@ -8,8 +8,8 @@ use crate::error::NotFound;
 /// The `TypeComponentBuilder` is used to build a set of type key based components.
 #[derive(Default)]
 pub struct TypeComponentBuilder {
-    components: HashMap<TypeId, Box<dyn Any>>,
-    shared: HashMap<TypeId, Entity>,
+    components: FxHashMap<TypeId, Box<dyn Any>>,
+    shared: FxHashMap<TypeId, Entity>,
 }
 
 impl TypeComponentBuilder {
@@ -45,7 +45,7 @@ impl TypeComponentBuilder {
     }
 
     /// Finishing the creation of the entity.
-    pub fn build(self) -> (HashMap<TypeId, Box<dyn Any>>, HashMap<TypeId, Entity>) {
+    pub fn build(self) -> (FxHashMap<TypeId, Box<dyn Any>>, FxHashMap<TypeId, Entity>) {
         (self.components, self.shared)
     }
 }
@@ -54,12 +54,12 @@ impl TypeComponentBuilder {
 /// borrow the components of the entities.
 #[derive(Default, Debug)]
 pub struct TypeComponentStore {
-    components: HashMap<(Entity, TypeId), Box<dyn Any>>,
-    shared: HashMap<(Entity, TypeId), Entity>,
+    components: FxHashMap<(Entity, TypeId), Box<dyn Any>>,
+    shared: FxHashMap<(Entity, TypeId), Entity>,
 }
 
 impl ComponentStore for TypeComponentStore {
-    type Components = (HashMap<TypeId, Box<dyn Any>>, HashMap<TypeId, Entity>);
+    type Components = (FxHashMap<TypeId, Box<dyn Any>>, FxHashMap<TypeId, Entity>);
 
     fn append(&mut self, entity: Entity, components: Self::Components) {
         for (key, value) in components.0 {

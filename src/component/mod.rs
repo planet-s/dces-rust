@@ -1,7 +1,7 @@
 use core::any::{Any, TypeId};
 
 #[cfg(feature = "no_std")]
-use alloc::collections::{BTreeMap, HashMap};
+use alloc::collections::{BTreeMap, FxHashMap};
 
 use crate::entity::*;
 

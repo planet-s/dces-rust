@@ -1,13 +1,8 @@
 use core::{any::Any, cell::Cell};
 
-#[cfg(not(feature = "no_std"))]
 use std::collections::{BTreeMap, HashMap};
 
-#[cfg(feature = "no_std")]
-use alloc::collections::{BTreeMap, HashMap};
-
 use crate::{component::*, entity::*, error::NotFound};
-
 
 /// Default type if you don't want to use a context.
 #[derive(Default)]

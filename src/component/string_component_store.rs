@@ -1,20 +1,20 @@
 use core::any::Any;
 
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 
 use super::{Component, ComponentBox, ComponentStore, Entity, SharedComponentBox};
 use crate::error::NotFound;
 
-type BuildComponents = HashMap<String, Box<dyn Any>>;
-type BuildSharedComponents = HashMap<String, (Entity, String)>;
-type Components = HashMap<(Entity, String), Box<dyn Any>>;
-type SharedComponents = HashMap<(Entity, String), (Entity, String)>;
+type BuildComponents = FxHashMap<String, Box<dyn Any>>;
+type BuildSharedComponents = FxHashMap<String, (Entity, String)>;
+type Components = FxHashMap<(Entity, String), Box<dyn Any>>;
+type SharedComponents = FxHashMap<(Entity, String), (Entity, String)>;
 
 /// The `StringComponentBuilder` is used to build a set of string key based components.
 #[derive(Default)]
 pub struct StringComponentBuilder {
-    components: HashMap<String, Box<dyn Any>>,
-    shared: HashMap<String, (Entity, String)>,
+    components: FxHashMap<String, Box<dyn Any>>,
+    shared: FxHashMap<String, (Entity, String)>,
 }
 
 impl StringComponentBuilder {
