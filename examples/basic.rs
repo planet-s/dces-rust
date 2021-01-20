@@ -13,12 +13,12 @@ struct Name(String);
 struct Depth(u32);
 
 pub struct SizeSystem;
-impl System<EntityStore, ComponentStore, PhantomContext> for SizeSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
+impl System<EntityStore, PhantomContext> for SizeSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner {
-            if let Ok(comp) = c_store.get_mut::<Size>(*entity) {
+            if let Ok(comp) = c_store.get_mut::<Size>("size", *entity) {
                 comp.width += 1;
                 comp.height += 1;
             }
@@ -27,13 +27,13 @@ impl System<EntityStore, ComponentStore, PhantomContext> for SizeSystem {
 }
 
 pub struct PrintSystem;
-impl System<EntityStore, ComponentStore, PhantomContext> for PrintSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
+impl System<EntityStore, PhantomContext> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner {
-            if let Ok(name) = c_store.get::<Name>(*entity) {
-                if let Ok(size) = c_store.get::<Size>(*entity) {
+            if let Ok(name) = c_store.get::<Name>("name", *entity) {
+                if let Ok(size) = c_store.get::<Size>("size", *entity) {
                     println!("{} width: {}; height: {}", name.0, size.width, size.height);
                 }
             }
@@ -42,18 +42,21 @@ impl System<EntityStore, ComponentStore, PhantomContext> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::from_stores(EntityStore::default(), ComponentStore::default());
+    let mut world = World::from_entity_store(EntityStore::default());
 
     world
         .create_entity()
         .components(
             ComponentBuilder::new()
-                .with(Name(String::from("Button")))
-                .with(Depth(4))
-                .with(Size {
-                    width: 5,
-                    height: 5,
-                })
+                .with("name", Name(String::from("Button")))
+                .with("depth", Depth(4))
+                .with(
+                    "size",
+                    Size {
+                        width: 5,
+                        height: 5,
+                    },
+                )
                 .build(),
         )
         .build();
@@ -62,12 +65,15 @@ fn main() {
         .create_entity()
         .components(
             ComponentBuilder::new()
-                .with(Name(String::from("CheckBox")))
-                .with(Depth(1))
-                .with(Size {
-                    width: 3,
-                    height: 3,
-                })
+                .with("name", Name(String::from("CheckBox")))
+                .with("depth", Depth(1))
+                .with(
+                    "size",
+                    Size {
+                        width: 3,
+                        height: 3,
+                    },
+                )
                 .build(),
         )
         .build();
@@ -76,12 +82,15 @@ fn main() {
         .create_entity()
         .components(
             ComponentBuilder::new()
-                .with(Name(String::from("RadioButton")))
-                .with(Depth(2))
-                .with(Size {
-                    width: 4,
-                    height: 6,
-                })
+                .with("name", Name(String::from("RadioButton")))
+                .with("detph", Depth(2))
+                .with(
+                    "size",
+                    Size {
+                        width: 4,
+                        height: 6,
+                    },
+                )
                 .build(),
         )
         .build();
@@ -90,11 +99,14 @@ fn main() {
         .create_entity()
         .components(
             ComponentBuilder::new()
-                .with(Depth(3))
-                .with(Size {
-                    width: 10,
-                    height: 4,
-                })
+                .with("depth", Depth(3))
+                .with(
+                    "size",
+                    Size {
+                        width: 10,
+                        height: 4,
+                    },
+                )
                 .build(),
         )
         .build();
@@ -103,11 +115,14 @@ fn main() {
         .create_entity()
         .components(
             ComponentBuilder::new()
-                .with(Depth(0))
-                .with(Size {
-                    width: 5,
-                    height: 8,
-                })
+                .with("depth", Depth(0))
+                .with(
+                    "size",
+                    Size {
+                        width: 5,
+                        height: 8,
+                    },
+                )
                 .build(),
         )
         .build();
