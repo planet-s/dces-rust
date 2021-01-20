@@ -6,33 +6,29 @@ use alloc::collections::{BTreeMap, FxHashMap};
 use crate::entity::*;
 
 pub use self::component_store::*;
-pub use self::string_component_store::*;
 
 mod component_store;
-mod string_component_store;
 
 /// The entity builder is used to create an entity with components.
-pub struct EntityBuilder<'a, E, C>
+pub struct EntityBuilder<'a, E>
 where
     E: EntityStore,
-    C: ComponentStore,
 {
     /// The created entity.
     pub entity: Entity,
 
     /// Reference to the component store.
-    pub component_store: &'a mut C,
+    pub component_store: &'a mut ComponentStore,
 
     /// Reference to the entity store.
     pub entity_store: &'a mut E,
 }
 
-impl<'a, E, C> EntityBuilder<'a, E, C>
+impl<'a, E> EntityBuilder<'a, E>
 where
     E: EntityStore,
-    C: ComponentStore,
 {
-    pub fn components(self, components: C::Components) -> Self {
+    pub fn components(self, components: (BuildComponents, BuildSharedComponents)) -> Self {
         self.component_store.append(self.entity, components);
         self
     }
@@ -92,49 +88,47 @@ impl ComponentBox {
 
 /// The EntityComponentManager represents the main entity and component storage.
 #[derive(Default)]
-pub struct EntityComponentManager<E, C>
+pub struct EntityComponentManager<E>
 where
     E: EntityStore,
-    C: ComponentStore,
 {
-    component_store: C,
+    component_store: ComponentStore,
 
     entity_store: E,
 
     entity_counter: u32,
 }
 
-impl<E, C> EntityComponentManager<E, C>
+impl<E> EntityComponentManager<E>
 where
     E: EntityStore,
-    C: ComponentStore,
 {
     /// Create a new entity component manager.
-    pub fn new(entity_store: E, component_store: C) -> Self {
+    pub fn new(entity_store: E) -> Self {
         EntityComponentManager {
             entity_counter: 0,
-            component_store,
+            component_store: ComponentStore::default(),
             entity_store,
         }
     }
 
     /// Returns references to the component store and entity store.
-    pub fn stores(&self) -> (&E, &C) {
+    pub fn stores(&self) -> (&E, &ComponentStore) {
         (&self.entity_store, &self.component_store)
     }
 
     /// Returns mutable references to the component store and entity store.
-    pub fn stores_mut(&mut self) -> (&mut E, &mut C) {
+    pub fn stores_mut(&mut self) -> (&mut E, &mut ComponentStore) {
         (&mut self.entity_store, &mut self.component_store)
     }
 
     /// Return a reference to the component container.
-    pub fn component_store(&self) -> &C {
+    pub fn component_store(&self) -> &ComponentStore {
         &self.component_store
     }
 
     /// Return a mutable reference to the component container.
-    pub fn component_store_mut(&mut self) -> &mut C {
+    pub fn component_store_mut(&mut self) -> &mut ComponentStore {
         &mut self.component_store
     }
 
@@ -149,7 +143,7 @@ where
     }
 
     /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
-    pub fn create_entity(&mut self) -> EntityBuilder<'_, E, C> {
+    pub fn create_entity(&mut self) -> EntityBuilder<'_, E> {
         let entity: Entity = self.entity_counter.into();
         self.entity_counter += 1;
 
@@ -173,20 +167,4 @@ where
         self.component_store.remove_entity(entity);
         self.entity_store.remove_entity(entity);
     }
-}
-
-/// This trait is used to define a custom component store.
-pub trait ComponentStore {
-    type Components;
-
-    fn append(&mut self, entity: Entity, components: Self::Components);
-
-    // /// Registers an new entity on the store.
-    // fn register_entity(&mut self, entity: impl Into<Entity>);
-
-    /// Removes and entity from the store.
-    fn remove_entity(&mut self, entity: impl Into<Entity>);
-
-    /// Print infos about the given entity.
-    fn print_entity(&self, entity: impl Into<Entity>);
 }

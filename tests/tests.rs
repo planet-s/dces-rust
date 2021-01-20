@@ -4,12 +4,12 @@ use dces::prelude::*;
 struct Counter(u32);
 
 struct UpdateSystem;
-impl System<EntityStore, ComponentStore, PhantomContext> for UpdateSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
+impl System<EntityStore, PhantomContext> for UpdateSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
-            if let Ok(comp) = c_store.get_mut::<Counter>(*entity) {
+            if let Ok(comp) = c_store.get_mut::<Counter>("counter", *entity) {
                 comp.0 += 1;
             }
         }
@@ -17,12 +17,12 @@ impl System<EntityStore, ComponentStore, PhantomContext> for UpdateSystem {
 }
 
 struct TestUpdateSystem(u32);
-impl System<EntityStore, ComponentStore, PhantomContext> for TestUpdateSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
+impl System<EntityStore, PhantomContext> for TestUpdateSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
         let (e_store, c_store) = ecm.stores_mut();
 
         for entity in &e_store.inner.clone() {
-            if let Ok(comp) = c_store.get_mut::<Counter>(*entity) {
+            if let Ok(comp) = c_store.get_mut::<Counter>("counter", *entity) {
                 assert_eq!(comp.0, self.0);
             }
         }
@@ -31,15 +31,15 @@ impl System<EntityStore, ComponentStore, PhantomContext> for TestUpdateSystem {
 
 #[test]
 fn test_update() {
-    let mut world = World::from_stores(EntityStore::default(), ComponentStore::default());
+    let mut world = World::from_entity_store(EntityStore::default());
 
     world
         .create_entity()
-        .components(ComponentBuilder::new().with(Counter(0)).build())
+        .components(ComponentBuilder::new().with("counter", Counter(0)).build())
         .build();
     world
         .create_entity()
-        .components(ComponentBuilder::new().with(Counter(0)).build())
+        .components(ComponentBuilder::new().with("counter", Counter(0)).build())
         .build();
 
     world.create_system(UpdateSystem).with_priority(0).build();

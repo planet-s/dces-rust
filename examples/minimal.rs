@@ -7,12 +7,12 @@ struct Name {
 
 struct PrintSystem;
 
-impl System<EntityStore, ComponentStore, PhantomContext> for PrintSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore, ComponentStore>) {
+impl System<EntityStore, PhantomContext> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {
-            if let Ok(comp) = c_store.get::<Name>(*entity) {
+            if let Ok(comp) = c_store.get::<Name>("name", *entity) {
                 println!("{}", comp.value);
             }
         }
@@ -20,15 +20,18 @@ impl System<EntityStore, ComponentStore, PhantomContext> for PrintSystem {
 }
 
 fn main() {
-    let mut world = World::from_stores(EntityStore::default(), ComponentStore::default());
+    let mut world = World::from_entity_store(EntityStore::default());
 
     world
         .create_entity()
         .components(
             ComponentBuilder::new()
-                .with(Name {
-                    value: String::from("DCES"),
-                })
+                .with(
+                    "name",
+                    Name {
+                        value: String::from("DCES"),
+                    },
+                )
                 .build(),
         )
         .build();

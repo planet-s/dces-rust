@@ -6,22 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.3.1 tbd
 
+* removed type based component store
 * priority for system also removed when system is removed 
 * fix sharing of shared properties
-* add target_key method to StringComponentStore
-* add is method to StringComponentStore
+* add target_key method to ComponentStore
+* add is method to ComponentStore
 
 ## 0.3 Context injection
 
 * Inject context in separate system run method
-* Add entities_of_component method to StringComponentStore
+* Add entities_of_component method to ComponentStore
 
 ## 0.2 Component Stores
 
 * Improve module structure
 * Improve naming
 * Add TypeComponentStore and builder
-* Add StringComponentStore and builder
+* Add ComponentStore and builder
 * Add string key example
 
 ## 0.1.3 / 0.1.4 / 0.1.5 / 0.1.6 Init and cleanup system
