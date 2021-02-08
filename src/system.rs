@@ -2,39 +2,32 @@ use core::{any::Any, cell::Cell};
 
 use std::collections::{BTreeMap, HashMap};
 
-use crate::{component::*, entity::*, error::NotFound};
-
-/// Default type if you don't want to use a context.
-#[derive(Default)]
-pub struct PhantomContext;
+use crate::{component::*, entity::*, error::NotFound, resources::Resources};
 
 /// The run order of a system. The systems will be executed by priority from small to great.
 pub type Priority = i32;
 
 /// This trait is used to interact with the components of entities. It could
 /// read and write to the components.
-pub trait System<E, Ctx>: Any
+pub trait System<E>: Any
 where
     E: EntityStore,
 {
     /// Runs the system and give access to the entity component manager.
-    fn run(&self, _ecm: &mut EntityComponentManager<E>) {}
-
-    /// Runs the system and give access to the entity component manager and context.
-    fn run_with_context(&self, _ecm: &mut EntityComponentManager<E>, _ctx: &mut Ctx) {}
+    fn run(&self, _ecm: &mut EntityComponentManager<E>, _res: &mut Resources) {}
 }
 
 /// Internal wrapper for a system. Contains also filter, priority, sort and entities.
-pub struct EntitySystem<E, Ctx> {
+pub struct EntitySystem<E> {
     /// The wrapped system.
-    pub system: Box<dyn System<E, Ctx>>,
+    pub system: Box<dyn System<E>>,
 
     priority: Priority,
 }
 
-impl<E, Ctx> EntitySystem<E, Ctx> {
+impl<E> EntitySystem<E> {
     /// Create a new entity system.
-    pub fn new(system: Box<dyn System<E, Ctx>>) -> Self {
+    pub fn new(system: Box<dyn System<E>>) -> Self {
         EntitySystem {
             system,
             priority: 0,
@@ -43,7 +36,7 @@ impl<E, Ctx> EntitySystem<E, Ctx> {
 }
 
 /// The system store builder is used to create a system.
-pub struct SystemStoreBuilder<'a, E, Ctx>
+pub struct SystemStoreBuilder<'a, E>
 where
     E: EntityStore,
 {
@@ -52,13 +45,13 @@ where
 
     /// Reference to the system store, used to apply filter, sort and priority
     /// to the system.
-    pub system_store: &'a mut SystemStore<E, Ctx>,
+    pub system_store: &'a mut SystemStore<E>,
 
     // Priority of the entity system.
     pub priority: Cell<i32>,
 }
 
-impl<'a, E, Ctx> SystemStoreBuilder<'a, E, Ctx>
+impl<'a, E> SystemStoreBuilder<'a, E>
 where
     E: EntityStore,
 {
@@ -78,24 +71,24 @@ where
 
 /// The SystemStore represents the main system storage.
 #[derive(Default)]
-pub struct SystemStore<E, Ctx>
+pub struct SystemStore<E>
 where
     E: EntityStore,
 {
     // The entity systems.
-    entity_systems: HashMap<u32, EntitySystem<E, Ctx>>,
+    entity_systems: HashMap<u32, EntitySystem<E>>,
 
     // The init system.
-    init_system: Option<EntitySystem<E, Ctx>>,
+    init_system: Option<EntitySystem<E>>,
 
     // The cleanup system.
-    cleanup_system: Option<EntitySystem<E, Ctx>>,
+    cleanup_system: Option<EntitySystem<E>>,
 
     /// Priorities of the systems.
     pub priorities: BTreeMap<i32, Vec<u32>>,
 }
 
-impl<E, Ctx> SystemStore<E, Ctx>
+impl<E> SystemStore<E>
 where
     E: EntityStore,
 {
@@ -110,17 +103,17 @@ where
     }
 
     /// Registers the init system.
-    pub fn register_init_system(&mut self, init_system: impl System<E, Ctx>) {
+    pub fn register_init_system(&mut self, init_system: impl System<E>) {
         self.init_system = Some(EntitySystem::new(Box::new(init_system)));
     }
 
     /// Registers the cleanup system.
-    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<E, Ctx>) {
+    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<E>) {
         self.cleanup_system = Some(EntitySystem::new(Box::new(cleanup_system)));
     }
 
     /// Registers a new `system`.
-    pub fn register_system(&mut self, system: impl System<E, Ctx>, system_id: u32) {
+    pub fn register_system(&mut self, system: impl System<E>, system_id: u32) {
         self.entity_systems
             .insert(system_id, EntitySystem::new(Box::new(system)));
     }
@@ -147,19 +140,19 @@ where
     pub fn borrow_entity_system(
         &self,
         entity_system_id: u32,
-    ) -> Result<&EntitySystem<E, Ctx>, NotFound> {
+    ) -> Result<&EntitySystem<E>, NotFound> {
         self.entity_systems
             .get(&entity_system_id)
             .map_or_else(|| Err(NotFound::EntitySystem(entity_system_id)), Ok)
     }
 
     /// Returns a reference of the init entity system. If the init entity system does not exists `None` will be returned.
-    pub fn borrow_init_system(&self) -> &Option<EntitySystem<E, Ctx>> {
+    pub fn borrow_init_system(&self) -> &Option<EntitySystem<E>> {
         &self.init_system
     }
 
     /// Returns a reference of the cleanup entity system. If the init entity system does not exists `None` will be returned.
-    pub fn borrow_cleanup_system(&self) -> &Option<EntitySystem<E, Ctx>> {
+    pub fn borrow_cleanup_system(&self) -> &Option<EntitySystem<E>> {
         &self.cleanup_system
     }
 }
@@ -171,7 +164,7 @@ mod tests {
 
     struct TestSystem;
 
-    impl System<VecEntityStore, PhantomContext> for TestSystem {}
+    impl System<VecEntityStore> for TestSystem {}
 
     #[test]
     fn test_register_system() {

@@ -5,16 +5,18 @@ struct Name {
     value: String,
 }
 
-struct StringContext(String);
+struct HelloWorld;
+
+impl HelloWorld {
+    pub fn say_hello(&self) -> &str {
+        return "Hello World";
+    }
+}
 
 struct PrintSystem;
 
-impl System<EntityStore, StringContext> for PrintSystem {
-    fn run_with_context(
-        &self,
-        ecm: &mut EntityComponentManager<EntityStore>,
-        ctx: &mut StringContext,
-    ) {
+impl System<EntityStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>, res: &mut Resources) {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {
@@ -23,7 +25,7 @@ impl System<EntityStore, StringContext> for PrintSystem {
             }
         }
 
-        println!("Context: {}", ctx.0);
+        println!("{}", res.get::<HelloWorld>().say_hello());
     }
 }
 
@@ -44,6 +46,8 @@ fn main() {
         )
         .build();
 
+    world.resources_mut().insert(HelloWorld);
+
     world.create_system(PrintSystem).build();
-    world.run_with_context(&mut StringContext("I'm the context.".into()));
+    world.run();
 }

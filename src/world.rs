@@ -4,22 +4,24 @@ use core::ops::Drop;
 use crate::{
     component::*,
     entity::*,
+    resources::Resources,
     system::{System, SystemStore, SystemStoreBuilder},
 };
 
 /// The `World` struct represents the main interface of the library. It used
 /// as storage of entities, components and systems.
-pub struct World<E, Ctx>
+pub struct World<E>
 where
     E: EntityStore,
 {
     entity_component_manager: EntityComponentManager<E>,
-    system_store: SystemStore<E, Ctx>,
+    resources: Resources,
+    system_store: SystemStore<E>,
     system_counter: u32,
     first_run: bool,
 }
 
-impl<E, Ctx> Drop for World<E, Ctx>
+impl<E> Drop for World<E>
 where
     E: EntityStore,
 {
@@ -27,14 +29,14 @@ where
         if let Some(cleanup_system) = self.system_store.borrow_cleanup_system() {
             cleanup_system
                 .system
-                .run(&mut self.entity_component_manager);
+                .run(&mut self.entity_component_manager, &mut self.resources);
         }
     }
 }
 
-unsafe impl<E, Ctx> Send for World<E, Ctx> where E: EntityStore {}
+unsafe impl<E> Send for World<E> where E: EntityStore {}
 
-impl<E, Ctx> World<E, Ctx>
+impl<E> World<E>
 where
     E: EntityStore,
 {
@@ -42,10 +44,21 @@ where
     pub fn from_entity_store(entity_store: E) -> Self {
         World {
             entity_component_manager: EntityComponentManager::new(entity_store),
+            resources: Resources::default(),
             system_counter: 0,
             system_store: SystemStore::new(),
             first_run: true,
         }
+    }
+
+    /// Returns a reference to the resources store.
+    pub fn resources(&self) -> &Resources {
+        &self.resources
+    }
+
+    /// Returns a mutable reference to the resources store.
+    pub fn resources_mut(&mut self) -> &mut Resources {
+        &mut self.resources
     }
 
     /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
@@ -59,17 +72,17 @@ where
     }
 
     /// Registers the init system.
-    pub fn register_init_system(&mut self, init_system: impl System<E, Ctx>) {
+    pub fn register_init_system(&mut self, init_system: impl System<E>) {
         self.system_store.register_init_system(init_system);
     }
 
     /// Registers the cleanup system.
-    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<E, Ctx>) {
+    pub fn register_cleanup_system(&mut self, cleanup_system: impl System<E>) {
         self.system_store.register_cleanup_system(cleanup_system);
     }
 
     /// Creates a new entity system and returns a returns an `SystemStoreBuilder`.
-    pub fn create_system(&mut self, system: impl System<E, Ctx>) -> SystemStoreBuilder<'_, E, Ctx> {
+    pub fn create_system(&mut self, system: impl System<E>) -> SystemStoreBuilder<'_, E> {
         let entity_system_id = self.system_counter;
         self.system_store.register_system(system, entity_system_id);
         self.system_counter += 1;
@@ -102,30 +115,9 @@ where
     pub fn run(&mut self) {
         if self.first_run {
             if let Some(init_system) = self.system_store.borrow_init_system() {
-                init_system.system.run(&mut self.entity_component_manager);
-            }
-            self.first_run = false;
-        }
-
-        let priorities = &self.system_store.priorities;
-        for priority in priorities.values() {
-            for system in priority {
-                self.system_store
-                    .borrow_entity_system(*system)
-                    .unwrap()
-                    .system
-                    .run(&mut self.entity_component_manager);
-            }
-        }
-    }
-
-    /// Run all systems of the world and calls `run_with_context` of the systems with the given context.
-    pub fn run_with_context(&mut self, ctx: &mut Ctx) {
-        if self.first_run {
-            if let Some(init_system) = self.system_store.borrow_init_system() {
                 init_system
                     .system
-                    .run_with_context(&mut self.entity_component_manager, ctx);
+                    .run(&mut self.entity_component_manager, &mut self.resources);
             }
             self.first_run = false;
         }
@@ -137,7 +129,7 @@ where
                     .borrow_entity_system(*system)
                     .unwrap()
                     .system
-                    .run_with_context(&mut self.entity_component_manager, ctx);
+                    .run(&mut self.entity_component_manager, &mut self.resources);
             }
         }
     }
@@ -147,19 +139,17 @@ where
 mod tests {
     use super::*;
     use crate::entity::{Entity, VecEntityStore};
-    use crate::system::PhantomContext;
 
     #[derive(Default)]
     struct TestSystem;
 
-    impl System<VecEntityStore, PhantomContext> for TestSystem {
-        fn run(&self, _ecm: &mut EntityComponentManager<VecEntityStore>) {}
+    impl System<VecEntityStore> for TestSystem {
+        fn run(&self, _ecm: &mut EntityComponentManager<VecEntityStore>, _res: &mut Resources) {}
     }
 
     #[test]
     fn create_entity() {
-        let mut world: World<VecEntityStore, PhantomContext> =
-            World::from_entity_store(VecEntityStore::default());
+        let mut world: World<VecEntityStore> = World::from_entity_store(VecEntityStore::default());
         assert_eq!(Entity(0), world.create_entity().build());
         assert_eq!(Entity(1), world.create_entity().build());
     }

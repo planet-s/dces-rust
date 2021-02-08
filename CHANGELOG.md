@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * fix sharing of shared properties
 * add target_key method to ComponentStore
 * add is method to ComponentStore
+* remove run_with_context
+* introduces Resources store
 
 ## 0.3 Context injection
 

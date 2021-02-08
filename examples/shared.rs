@@ -16,8 +16,8 @@ pub struct SizeSystem {
     source: Entity,
 }
 
-impl System<EntityStore, PhantomContext> for SizeSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
+impl System<EntityStore> for SizeSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>, _: &mut Resources) {
         if let Ok(comp) = ecm
             .component_store_mut()
             .get_mut::<Size>("size", self.source)
@@ -29,8 +29,8 @@ impl System<EntityStore, PhantomContext> for SizeSystem {
 }
 
 pub struct PrintSystem;
-impl System<EntityStore, PhantomContext> for PrintSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
+impl System<EntityStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>, _: &mut Resources) {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {

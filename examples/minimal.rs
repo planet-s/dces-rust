@@ -7,8 +7,8 @@ struct Name {
 
 struct PrintSystem;
 
-impl System<EntityStore, PhantomContext> for PrintSystem {
-    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>) {
+impl System<EntityStore> for PrintSystem {
+    fn run(&self, ecm: &mut EntityComponentManager<EntityStore>, _: &mut Resources) {
         let (e_store, c_store) = ecm.stores();
 
         for entity in &e_store.inner {
