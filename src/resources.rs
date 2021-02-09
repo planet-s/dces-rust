@@ -37,8 +37,8 @@ impl Resources {
     }
 
     /// Inserts a new resource.
-    pub fn insert<C: Component>(&mut self, service: C) {
-        self.resources.insert(TypeId::of::<C>(), Box::new(service));
+    pub fn insert<C: Component>(&mut self, resource: C) {
+        self.resources.insert(TypeId::of::<C>(), Box::new(resource));
     }
 
     /// Gets an element from the resources.

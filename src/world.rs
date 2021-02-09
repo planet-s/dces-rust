@@ -61,6 +61,11 @@ where
         &mut self.resources
     }
 
+    /// Inserts a new resource.
+    pub fn insert_resource<C: Component>(&mut self, resource: C) {
+        self.resources.insert(resource);
+    }
+
     /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
     pub fn create_entity(&mut self) -> EntityBuilder<'_, E> {
         self.entity_component_manager.create_entity()
