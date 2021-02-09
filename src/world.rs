@@ -66,6 +66,31 @@ where
         self.resources.insert(resource);
     }
 
+    /// Gets an element from the resources.
+    pub fn resource<C: Component>(&self) -> &C {
+        self.resources.get::<C>()
+    }
+
+    /// Gets a mutable reference of the requested element.
+    pub fn resource_mut<C: Component>(&mut self) -> &mut C {
+        self.resources.get_mut::<C>()
+    }
+
+    /// Try to get an element from the resources.
+    pub fn try_resource<C: Component>(&self) -> Option<&C> {
+        self.resources.try_get::<C>()
+    }
+
+    /// Try to get an element from the resources.
+    pub fn try_resource_mut<C: Component>(&mut self) -> Option<&mut C> {
+        self.resources.try_get_mut::<C>()
+    }
+
+    /// Returns `true` if the resources contains a resource of the given type overwise `false` .
+    pub fn contains_resource<C: Component>(&self) -> bool {
+        self.resources.contains::<C>()
+    }
+
     /// Creates a new entity and returns a returns an `TypeEntityBuilder`.
     pub fn create_entity(&mut self) -> EntityBuilder<'_, E> {
         self.entity_component_manager.create_entity()
